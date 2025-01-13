@@ -70,6 +70,22 @@ public class Main extends Application {
             yDirection *= -1;
         }
 
+        public void leftBounce(){
+            // want negative x movement
+            xDirection = Math.abs(xDirection) * -1;
+            reverseYDirection();;
+        }
+
+        public void midBounce(){
+            // do nt alter x movment, just contine x directional motion
+            reverseYDirection();;
+        }
+        public void rightBounce(){
+            // want positive x movement
+            xDirection = Math.abs(xDirection);
+            reverseYDirection();;
+        }
+
         public void reset() {
             // decrease lives
             lives--;
@@ -163,17 +179,17 @@ public class Main extends Application {
 
         // check if the ball hits the left side of the pad
         if (leftPadDetection(ballObj, padObj)){
-            System.out.println("LEFT");
+            ball.leftBounce();
         }
 
         // check if the ball hits the middle side of the pad
         if (midPadDetection(ballObj, padObj)){
-            System.out.println("MIDDLE");
+            ball.midBounce();;
         }
 
         // check if the ball hits the right side of the pad
         if (rightPadDetection(ballObj, padObj)){
-            System.out.println("RIGHT");
+            ball.rightBounce();
         }
         
     }
