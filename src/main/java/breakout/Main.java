@@ -404,6 +404,7 @@ public class Main extends Application {
             case L -> lives++;
             case M -> lives--;
             case B -> removeRandomBlock();
+            case X -> ball.reverseXDirection();
         }
     }
 
