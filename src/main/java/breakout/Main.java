@@ -90,7 +90,7 @@ public class Main extends Application {
         public Rectangle pad;
 
         public Pad() {
-            this.pad = new Rectangle(0, 300, 40, 10);
+            this.pad = new Rectangle(0, 300, 100, 10);
             pad.setFill(new Color(1, 1, 1, 1));
             this.reset();
         }
@@ -155,7 +155,49 @@ public class Main extends Application {
         }
     }
 
+    // pad collision detection
+    void padDetection(Bouncer ball, Pad pad) { 
+        // grab circle and rectangle properties of the ball and pad
+        Circle ballObj = ball.bouncer;
+        Rectangle padObj = pad.pad;
 
+        // check if the ball hits the left side of the pad
+        if (leftPadDetection(ballObj, padObj)){
+            System.out.println("LEFT");
+        }
+
+        // check if the ball hits the middle side of the pad
+        if (midPadDetection(ballObj, padObj)){
+            System.out.println("MIDDLE");
+        }
+
+        // check if the ball hits the right side of the pad
+        if (rightPadDetection(ballObj, padObj)){
+            System.out.println("RIGHT");
+        }
+        
+    }
+
+    // left side of pad
+    boolean leftPadDetection(Circle ballObj, Rectangle padObj){
+        return (ballObj.getCenterX() > padObj.getX() 
+                && ballObj.getCenterX() <= padObj.getX() + padObj.getWidth() / 3 
+                && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
+    }
+
+    // middle of pad
+    boolean midPadDetection(Circle ballObj, Rectangle padObj){
+        return (ballObj.getCenterX() > padObj.getX() + padObj.getWidth() / 3
+                && ballObj.getCenterX() <= padObj.getX() + 2*padObj.getWidth() / 3 
+                && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
+    }
+
+    // right side of pad
+    boolean rightPadDetection(Circle ballObj, Rectangle padObj){
+        return (ballObj.getCenterX() > padObj.getX() + 2*padObj.getWidth() / 3 
+                && ballObj.getCenterX() <= padObj.getX() + padObj.getWidth() 
+                && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
+    }
 
 
 
@@ -201,6 +243,7 @@ public class Main extends Application {
         // ball.bouncer.setCenterX(ball.bouncer.getCenterX() + 1);
         updateBallPos();
         edgeDetection();
+        padDetection(ball, pad);
     }
 
     private void handleKeyInput (KeyCode code) {
