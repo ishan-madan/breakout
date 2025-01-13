@@ -92,7 +92,7 @@ public class Main extends Application {
             reverseYDirection();;
         }
 
-        public void reset() {
+        public void reset(boolean manualReset) {
             // decrease lives
             lives--;
             // reset location
@@ -100,7 +100,7 @@ public class Main extends Application {
             bouncer.setCenterY(BALL_START_Y);
             // reset directions
             double newX = Math.random() * 2 - 1;
-            double newY = -1;
+            double newY = (manualReset) ? -1 : 1;
             double newHyp = Math.sqrt(newX*newX + newY*newY);
             this.xDirection = newX / newHyp;
             this.yDirection = newY / newHyp;
@@ -166,7 +166,7 @@ public class Main extends Application {
         }
         // check bottom edge
         if (ball.bouncer.getCenterY() >= SIZE - ball.bouncer.getRadius()){
-            ball.reset();
+            ball.reset(false);
             pad.reset();
         }
     }
@@ -334,6 +334,7 @@ public class Main extends Application {
             System.out.println("Next lvl");
         }
     }
+    
     public static void removeRandomBlock(){
         if (!tiles.isEmpty()){
             Tile randTile = tiles.get((int) Math.floor(Math.random() * tiles.size()));
@@ -350,9 +351,7 @@ public class Main extends Application {
         pad = new Pad();
 
         // create all tiles
-        System.out.println("starting");
         tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl1.txt"));
-        System.out.println("finished");
 
         // Set up the scene using the global myScene
         myScene = setupScene(SIZE, SIZE, DUKE_BLUE);
@@ -401,7 +400,7 @@ public class Main extends Application {
             case LEFT -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
             case A -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
             case D -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
-            case R -> {ball.reset(); pad.reset();}
+            case R -> {ball.reset(true); pad.reset();}
             case L -> lives++;
             case M -> lives--;
             case B -> removeRandomBlock();
