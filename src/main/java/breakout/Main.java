@@ -32,7 +32,8 @@ public class Main extends Application {
     public static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
     public static final int PAD_START_Y = (int) (SIZE * 0.9);
     public static final int BALL_START_Y = PAD_START_Y - RADIUS;
-    public static final int SPEED = 4;
+    public static final int BALL_SPEED = 4;
+    public static final int PAD_SPEED = 4;
 
     // game objects
     Bouncer ball;
@@ -160,37 +161,41 @@ public class Main extends Application {
 
 
 
-    /**
-     * Initialize what will be displayed.
-     */
-    @Override
-    public void start (Stage stage) {
-        ball = new Bouncer(new Circle(200, 200, RADIUS), Math.random()*2 - 1, Math.random()*2 - 1, SPEED);
-        ball.bouncer.setFill(Color.LIGHTSTEELBLUE);
 
+    @Override
+    public void start(Stage stage) {
+        // Initialize ball and paddle
+        ball = new Bouncer(new Circle(200, 200, RADIUS), Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED);
+        ball.bouncer.setFill(Color.LIGHTSTEELBLUE);
         pad = new Pad();
 
-        Group root = new Group();
-        root.getChildren().add(ball.bouncer);
-        root.getChildren().add(pad.pad);
+        // Set up the scene using the global myScene
+        myScene = setupScene(SIZE, SIZE, DUKE_BLUE);
+        Group root = (Group) myScene.getRoot();
+        root.getChildren().addAll(ball.bouncer, pad.pad);
 
-        Scene scene = new Scene(root, SIZE, SIZE, DUKE_BLUE);
-        stage.setScene(scene);
-
+        // Set up the stage
+        stage.setScene(myScene);
         stage.setTitle(TITLE);
         stage.show();
 
+        // Start the animation loop
         Timeline animation = new Timeline();
         animation.setCycleCount(Timeline.INDEFINITE);
         animation.getKeyFrames().add(new KeyFrame(Duration.seconds(SECOND_DELAY), e -> step(SECOND_DELAY)));
         animation.play();
     }
 
-    public Scene setupScene (int width, int height, Paint background) {
+    public Scene setupScene(int width, int height, Paint background) {
         Group root = new Group();
-        Scene myScene = new Scene(root, width, height, background);
+        myScene = new Scene(root, width, height, background);
+
+        // Handle key inputs for paddle movement
+        myScene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
+
         return myScene;
     }
+
 
     private void step (double elapsedTime) {
         // ball.bouncer.setCenterX(ball.bouncer.getCenterX() + 1);
@@ -199,13 +204,12 @@ public class Main extends Application {
     }
 
     private void handleKeyInput (KeyCode code) {
-        // switch (code) {
-        //     case RIGHT -> myMover.setX(myMover.getX() + MOVER_SPEED);
-        //     case LEFT -> myMover.setX(myMover.getX() - MOVER_SPEED);
-        //     case UP -> myMover.setY(myMover.getY() - MOVER_SPEED);
-        //     case DOWN -> myMover.setY(myMover.getY() + MOVER_SPEED);
-        //     case R -> {bouncer1.getBouncer().setX(0); bouncer2.getBouncer().setX(0);}
-        // }
+        switch (code) {
+            case RIGHT -> pad.pad.setX(pad.pad.getX() + PAD_SPEED);
+            case LEFT -> pad.pad.setX(pad.pad.getX() - PAD_SPEED);
+            case A -> pad.pad.setX(pad.pad.getX() - PAD_SPEED);
+            case D -> pad.pad.setX(pad.pad.getX() + PAD_SPEED);
+        }
     }
 
     // What to do each time a mouse button is clicked
