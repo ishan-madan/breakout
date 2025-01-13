@@ -252,7 +252,7 @@ public class Main extends Application {
     }
 
     // collsiion detect between ball and tile
-    public static boolean tileCollide(Circle circle, Rectangle rectangle) {
+    public static int tileCollide(Circle circle, Rectangle rectangle) {
         // get circle center coordinates
         double circleX = circle.getCenterX();
         double circleY = circle.getCenterY();
@@ -272,14 +272,47 @@ public class Main extends Application {
         double distanceX = circleX - closestX;
         double distanceY = circleY - closestY;
         
-        // check for collision
+        // check if there's a collision at all
         double distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
-        return distanceSquared <= (radius * radius);
+        if (distanceSquared > (radius * radius)) {
+            return 0; // No collision
+        }
+        
+        // determine which side was hit
+        
+        // get the center of the rectangle
+        double rectCenterX = rectX + rectWidth / 2;
+        double rectCenterY = rectY + rectHeight / 2;
+        
+        // calc the angle between circle center and rectangle center
+        double angle = Math.toDegrees(Math.atan2(circleY - rectCenterY, circleX - rectCenterX));
+        
+        // normalize angle to 0-360 range
+        if (angle < 0) {
+            angle += 360;
+        }
+        
+        // calc the angle threshold based on rectangle dimensions
+        double angleThreshold = Math.toDegrees(Math.atan2(rectHeight, rectWidth));
+        
+        // determine which side was hit based on the angle
+        if (angle >= 360 - angleThreshold || angle < angleThreshold) {
+            return 2; // R side
+        } else if (angle >= angleThreshold && angle < 180 - angleThreshold) {
+            return 1; // T side
+        } else if (angle >= 180 - angleThreshold && angle < 180 + angleThreshold) {
+            return 2; // L side
+        } else {
+            return 1; // B side
+        }
     }
 
-    public static Tile checkTileCollisions(Circle ball, ArrayList<Tile> tiles){
+    public static Tile checkTileCollisions(Bouncer ball, ArrayList<Tile> tiles){
         for (Tile tile : tiles){
-            if (tileCollide(ball, tile.tile)){
+            // get contact side (if any)
+            int contactSide = tileCollide(ball.bouncer, tile.tile);
+
+            if (contactSide != 0){
                 // kill tile
                 tiles.remove(tile);
                 root.getChildren().remove(tile.tile);
@@ -288,6 +321,13 @@ public class Main extends Application {
                 // TODO
                 if (tiles.isEmpty()){
                     System.out.println("Next lvl");
+                }
+
+                // bounce off side depending on side of tile that is hit
+                if (contactSide == 1){
+                    ball.reverseYDirection();
+                } else if (contactSide == 2){
+                    ball.reverseXDirection();
                 }
 
                 // kill loop if we collide to prevent concurrent modification
@@ -347,7 +387,7 @@ public class Main extends Application {
         updateBallPos();
         edgeDetection();
         padDetection(ball, pad);
-        checkTileCollisions(ball.bouncer, tiles);
+        checkTileCollisions(ball, tiles);
 
     }
 
