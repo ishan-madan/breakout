@@ -270,6 +270,7 @@ public class Main extends Application {
             case D -> pad.pad.setX(pad.pad.getX() + PAD_SPEED);
             case R -> {ball.reset(); pad.reset();}
             case L -> lives++;
+            case M -> lives--;
         }
     }
 
