@@ -47,10 +47,11 @@ public class Main extends Application {
     Bouncer ball;
     Scene myScene;
     Pad pad;
+    static Group root;
+    ArrayList<Tile> tiles;
 
     // global vars
     static int lives = 3;
-    static int tilesLeft = 10;
 
 
 
@@ -219,6 +220,7 @@ public class Main extends Application {
                 && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
     }
 
+    // setup tiles on game
     ArrayList<Tile> setupTiles(File input) {
         ArrayList<Tile> tiles = new ArrayList<>();
         
@@ -249,8 +251,52 @@ public class Main extends Application {
         return tiles;
     }
 
+    // collsiion detect between ball and tile
+    public static boolean tileCollide(Circle circle, Rectangle rectangle) {
+        // get circle center coordinates
+        double circleX = circle.getCenterX();
+        double circleY = circle.getCenterY();
+        double radius = circle.getRadius();
+        
+        // get rectangle bounds
+        double rectX = rectangle.getX();
+        double rectY = rectangle.getY();
+        double rectWidth = rectangle.getWidth();
+        double rectHeight = rectangle.getHeight();
+        
+        // find closest point on rectangle to circle center
+        double closestX = Math.max(rectX, Math.min(circleX, rectX + rectWidth));
+        double closestY = Math.max(rectY, Math.min(circleY, rectY + rectHeight));
+        
+        // calc distance between closest point and circle center
+        double distanceX = circleX - closestX;
+        double distanceY = circleY - closestY;
+        
+        // check for collision
+        double distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
+        return distanceSquared <= (radius * radius);
+    }
 
+    public static Tile checkTileCollisions(Circle ball, ArrayList<Tile> tiles){
+        for (Tile tile : tiles){
+            if (tileCollide(ball, tile.tile)){
+                // kill tile
+                tiles.remove(tile);
+                root.getChildren().remove(tile.tile);
 
+                // if out of tiles, console FOR NOW
+                // TODO
+                if (tiles.isEmpty()){
+                    System.out.println("Next lvl");
+                }
+
+                // kill loop if we collide to prevent concurrent modification
+                break;
+            }
+        }
+
+        return null;
+    }
 
 
     @Override
@@ -262,12 +308,12 @@ public class Main extends Application {
 
         // create all tiles
         System.out.println("starting");
-        ArrayList<Tile> tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl1.txt"));
+        tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl1.txt"));
         System.out.println("finished");
 
         // Set up the scene using the global myScene
         myScene = setupScene(SIZE, SIZE, DUKE_BLUE);
-        Group root = (Group) myScene.getRoot();
+        root = (Group) myScene.getRoot();
         root.getChildren().addAll(ball.bouncer, pad.pad);
         
         // add all tiles
@@ -288,7 +334,7 @@ public class Main extends Application {
     }
 
     public Scene setupScene(int width, int height, Paint background) {
-        Group root = new Group();
+        root = new Group();
         myScene = new Scene(root, width, height, background);
 
         // Handle key inputs for paddle movement
@@ -301,6 +347,8 @@ public class Main extends Application {
         updateBallPos();
         edgeDetection();
         padDetection(ball, pad);
+        checkTileCollisions(ball.bouncer, tiles);
+
     }
 
     private void handleKeyInput (KeyCode code) {
