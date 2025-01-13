@@ -144,6 +144,12 @@ public class Main extends Application {
 
     // helper methods
 
+    // reset entire game
+    void resetGame() {
+        ball.reset();
+        pad.reset();
+    }
+
     // update ball position
     void updateBallPos(){
         ball.bouncer.setCenterX(ball.bouncer.getCenterX() + ball.xDirection * ball.speed);
@@ -268,6 +274,7 @@ public class Main extends Application {
             case LEFT -> pad.pad.setX(pad.pad.getX() - PAD_SPEED);
             case A -> pad.pad.setX(pad.pad.getX() - PAD_SPEED);
             case D -> pad.pad.setX(pad.pad.getX() + PAD_SPEED);
+            case R -> resetGame();
         }
     }
 
