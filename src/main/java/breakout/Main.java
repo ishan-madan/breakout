@@ -3,22 +3,17 @@ package breakout;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
-
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -41,7 +36,7 @@ public class Main extends Application {
     public static final int PAD_START_Y = (int) (SIZE * 0.9);
     public static final int BALL_START_Y = PAD_START_Y - RADIUS;
     public static final int BALL_SPEED = 4;
-    public static final int PAD_SPEED = 4;
+    public static final int PAD_SPEED = 10;
 
     // game objects
     Bouncer ball;
@@ -393,10 +388,10 @@ public class Main extends Application {
 
     private void handleKeyInput (KeyCode code) {
         switch (code) {
-            case RIGHT -> pad.pad.setX(pad.pad.getX() + PAD_SPEED);
-            case LEFT -> pad.pad.setX(pad.pad.getX() - PAD_SPEED);
-            case A -> pad.pad.setX(pad.pad.getX() - PAD_SPEED);
-            case D -> pad.pad.setX(pad.pad.getX() + PAD_SPEED);
+            case RIGHT -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
+            case LEFT -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
+            case A -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
+            case D -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
             case R -> {ball.reset(); pad.reset();}
             case L -> lives++;
             case M -> lives--;
@@ -406,8 +401,5 @@ public class Main extends Application {
     public static void main (String[] args) {
         launch(args);
     }
-
-
-
 
 }
