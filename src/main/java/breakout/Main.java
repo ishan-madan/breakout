@@ -43,7 +43,7 @@ public class Main extends Application {
     Scene myScene;
     Pad pad;
     static Group root;
-    ArrayList<Tile> tiles;
+    static ArrayList<Tile> tiles;
 
     // global vars
     static int lives = 3;
@@ -312,12 +312,6 @@ public class Main extends Application {
                 tiles.remove(tile);
                 root.getChildren().remove(tile.tile);
 
-                // if out of tiles, console FOR NOW
-                // TODO
-                if (tiles.isEmpty()){
-                    System.out.println("Next lvl");
-                }
-
                 // bounce off side depending on side of tile that is hit
                 if (contactSide == 1){
                     ball.reverseYDirection();
@@ -333,6 +327,20 @@ public class Main extends Application {
         return null;
     }
 
+    public static void checkWin(ArrayList<Tile> tiles) {
+        // if out of tiles, console FOR NOW
+        // TODO
+        if (tiles.isEmpty()){
+            System.out.println("Next lvl");
+        }
+    }
+    public static void removeRandomBlock(){
+        if (!tiles.isEmpty()){
+            Tile randTile = tiles.get((int) Math.floor(Math.random() * tiles.size()));
+            root.getChildren().remove(randTile.tile);
+            tiles.remove(randTile);
+        }
+    }
 
     @Override
     public void start(Stage stage) {
@@ -384,6 +392,7 @@ public class Main extends Application {
         padDetection(ball, pad);
         checkTileCollisions(ball, tiles);
 
+        checkWin(tiles);
     }
 
     private void handleKeyInput (KeyCode code) {
@@ -395,6 +404,7 @@ public class Main extends Application {
             case R -> {ball.reset(); pad.reset();}
             case L -> lives++;
             case M -> lives--;
+            case B -> removeRandomBlock();
         }
     }
 
