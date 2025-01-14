@@ -358,7 +358,7 @@ public class Main extends Application {
     }
 
     // collsiion detect between ball and tile
-    public static int tileCollide(Circle circle, Rectangle rectangle) {
+    public static int tileCollideDetect(Circle circle, Rectangle rectangle) {
         // get circle center coordinates
         double circleX = circle.getCenterX();
         double circleY = circle.getCenterY();
@@ -417,7 +417,7 @@ public class Main extends Application {
     public static Tile checkTileCollisions(Bouncer ball){
         for (Tile tile : tiles){
             // get contact side (if any)
-            int contactSide = tileCollide(ball.bouncer, tile.tile);
+            int contactSide = tileCollideDetect(ball.bouncer, tile.tile);
 
             if (contactSide != 0){
                 // give powerup if needed
