@@ -39,11 +39,12 @@ public class Main extends Application {
     public static final int PAD_SPEED = 10;
 
     // game objects
-    Bouncer ball;
-    Scene myScene;
-    Pad pad;
+    static Bouncer ball;
+    static Scene myScene;
+    static Pad pad;
     static Group root;
     static ArrayList<Tile> tiles;
+    static Stage stage;
 
     // global vars
     static int lives = 3;
@@ -172,7 +173,7 @@ public class Main extends Application {
     }
 
     // pad collision detection
-    void padDetection(Bouncer ball, Pad pad) { 
+    void padDetection() { 
         // grab circle and rectangle properties of the ball and pad
         Circle ballObj = ball.bouncer;
         Rectangle padObj = pad.pad;
@@ -216,8 +217,8 @@ public class Main extends Application {
     }
 
     // setup tiles on game
-    ArrayList<Tile> setupTiles(File input) {
-        ArrayList<Tile> tiles = new ArrayList<>();
+    static ArrayList<Tile> setupTiles(File input) {
+        tiles = new ArrayList<>();
         
         try {
             Scanner s = new Scanner(input);
@@ -302,7 +303,8 @@ public class Main extends Application {
         }
     }
 
-    public static Tile checkTileCollisions(Bouncer ball, ArrayList<Tile> tiles){
+    // check to see if th ball has collided with any tiles
+    public static Tile checkTileCollisions(){
         for (Tile tile : tiles){
             // get contact side (if any)
             int contactSide = tileCollide(ball.bouncer, tile.tile);
@@ -327,14 +329,41 @@ public class Main extends Application {
         return null;
     }
 
-    public static void checkWin(ArrayList<Tile> tiles) {
+    // check to see if the tiles are all killed
+    public static void checkWin() {
         // if out of tiles, console FOR NOW
         // TODO
         if (tiles.isEmpty()){
-            System.out.println("Next lvl");
+            loadNewScene(2);
         }
     }
+
+    // set new scene
+    public static void loadNewScene(int lvlNum) {
+        // Clear previous objects
+        root.getChildren().clear();
+        tiles.clear();
     
+        // Reset pad and ball
+        pad.reset();
+        ball.reset(true);
+    
+        // Add pad and ball back to the root
+        root.getChildren().addAll(pad.pad, ball.bouncer);
+    
+        // Load new tiles
+        tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
+        for (Tile tile : tiles) {
+            root.getChildren().add(tile.tile);
+        }
+    
+        // Create a new scene and set it on the stage
+        Scene newScene = new Scene(root, SIZE, SIZE, DUKE_BLUE);
+        stage.setScene(newScene);
+        stage.show();
+    }
+    
+    // remove a random block on the screen
     public static void removeRandomBlock(){
         if (!tiles.isEmpty()){
             Tile randTile = tiles.get((int) Math.floor(Math.random() * tiles.size()));
@@ -344,7 +373,10 @@ public class Main extends Application {
     }
 
     @Override
-    public void start(Stage stage) {
+    public void start(Stage tempStage) {
+        // initialize stage
+        stage = tempStage;
+
         // Initialize ball and paddle
         ball = new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED);
         ball.bouncer.setFill(Color.LIGHTSTEELBLUE);
@@ -388,10 +420,10 @@ public class Main extends Application {
     private void step (double elapsedTime) {
         updateBallPos();
         edgeDetection();
-        padDetection(ball, pad);
-        checkTileCollisions(ball, tiles);
+        padDetection();
+        checkTileCollisions();
 
-        checkWin(tiles);
+        checkWin();
     }
 
     private void handleKeyInput (KeyCode code) {
