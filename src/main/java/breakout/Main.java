@@ -52,6 +52,7 @@ public class Main extends Application {
     static Timeline animation;
     static Text livesText;
     static Text scoreText;
+    static Text levelText;
 
     // global vars
     static int lives = 3;
@@ -502,8 +503,12 @@ public class Main extends Application {
         scoreText.setFill(Color.WHITE);
         scoreText.setFont(Font.font(16));
 
+        levelText = new Text(SIZE/2 - 20, 20, "Level: " + currLevel);
+        levelText.setFill(Color.WHITE);
+        levelText.setFont(Font.font(16));
+
         // Add pad and ball to the new root
-        root.getChildren().addAll(pad.pad, balls.get(0).bouncer, livesText, scoreText);
+        root.getChildren().addAll(pad.pad, balls.get(0).bouncer, livesText, levelText, scoreText);
 
         // Load new tiles
         tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
