@@ -55,6 +55,8 @@ public class Main extends Application {
     // global vars
     static int lives = 3;
     static int currLevel = 1;
+    static int highscore = 0;
+    static int score = 0;
 
 
 
@@ -160,9 +162,13 @@ public class Main extends Application {
         title.setFont(Font.font(48));
         title.setFill(DUKE_BLUE);
         
-        Text instructions = new Text("Use LEFT/RIGHT arrows or A/D to move the paddle");
-        instructions.setFont(Font.font(20));
-        instructions.setFill(Color.WHITE);
+        Text instructions = new Text("Use LEFT/RIGHT or A/D to move the paddle");
+        instructions.setFont(Font.font(15));
+        instructions.setFill(DUKE_BLUE);
+
+        Text hs = new Text("Highscore: " + highscore);
+        instructions.setFont(Font.font(15));
+        instructions.setFill(DUKE_BLUE);
         
         Button startButton = new Button("Start Game");
         startButton.setOnAction(e -> {
@@ -170,7 +176,7 @@ public class Main extends Application {
             animation.play();
         });
         
-        startLayout.getChildren().addAll(title, instructions, startButton);
+        startLayout.getChildren().addAll(title, instructions, hs, startButton);
         
         Scene startScene = new Scene(startLayout, SIZE, SIZE, DUKE_BLUE);
         startScene.setOnKeyPressed(e -> {
@@ -189,12 +195,17 @@ public class Main extends Application {
         
         Text endText = new Text(won ? "YOU WIN!" : "GAME OVER");
         endText.setFont(Font.font(48));
-        endText.setFill(Color.WHITE);
+        endText.setFill(DUKE_BLUE);
+
+        Text scoreText = new Text((highscore < score) ? "New Highscore: " + score : "Score: " + score);
+        Text hs = new Text((highscore < score) ? "CONGRATS!" : "Highscore: " + highscore);
         
         Button restartButton = new Button("Play Again");
         restartButton.setOnAction(e -> {
             currLevel = 1;
             lives = 3;
+            highscore = Math.max(highscore, score);
+            score = 0;
             loadNewScene(1);
             animation.play();
         });
@@ -202,7 +213,7 @@ public class Main extends Application {
         Button quitButton = new Button("Quit");
         quitButton.setOnAction(e -> stage.close());
         
-        endLayout.getChildren().addAll(endText, restartButton, quitButton);
+        endLayout.getChildren().addAll(endText, restartButton, scoreText, hs, quitButton);
         
         return new Scene(endLayout, SIZE, SIZE, DUKE_BLUE);
     }
@@ -247,6 +258,7 @@ public class Main extends Application {
         if (ball.bouncer.getCenterY() >= SIZE - ball.bouncer.getRadius()){
             ball.reset(false);
             pad.reset();
+            score -= 10;
         }
     }
 
@@ -392,6 +404,9 @@ public class Main extends Application {
                 tiles.remove(tile);
                 root.getChildren().remove(tile.tile);
 
+                // increase score
+                score += 5;
+
                 // bounce off side depending on side of tile that is hit
                 if (contactSide == 1){
                     ball.reverseYDirection();
@@ -427,38 +442,38 @@ public class Main extends Application {
 
     // set new scene
     // Modified loadNewScene method
-public static void loadNewScene(int lvlNum) {
-    // Initialize game objects if they don't exist
-    initializeGameObjects();
-    
-    // Create a new root Group for the new scene
-    root = new Group();
+    public static void loadNewScene(int lvlNum) {
+        // Initialize game objects if they don't exist
+        initializeGameObjects();
+        
+        // Create a new root Group for the new scene
+        root = new Group();
 
-    // Clear tiles
-    tiles.clear();
+        // Clear tiles
+        tiles.clear();
 
-    // Reset pad and ball
-    pad.reset();
-    ball.reset(true);
+        // Reset pad and ball
+        pad.reset();
+        ball.reset(true);
 
-    // Add pad and ball to the new root
-    root.getChildren().addAll(pad.pad, ball.bouncer);
+        // Add pad and ball to the new root
+        root.getChildren().addAll(pad.pad, ball.bouncer);
 
-    // Load new tiles
-    tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
-    for (Tile tile : tiles) {
-        root.getChildren().add(tile.tile);
+        // Load new tiles
+        tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
+        for (Tile tile : tiles) {
+            root.getChildren().add(tile.tile);
+        }
+
+        // Create a new scene and set it on the stage
+        myScene = new Scene(root, SIZE, SIZE, DUKE_BLUE);
+        
+        // Add key handling to the new scene
+        myScene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
+        
+        stage.setScene(myScene);
+        stage.show();
     }
-
-    // Create a new scene and set it on the stage
-    myScene = new Scene(root, SIZE, SIZE, DUKE_BLUE);
-    
-    // Add key handling to the new scene
-    myScene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
-    
-    stage.setScene(myScene);
-    stage.show();
-}
     
     // remove a random block on the screen
     public static void removeRandomBlock(){
