@@ -288,21 +288,23 @@ public class Main extends Application {
         Circle ballObj = ball.bouncer;
         Rectangle padObj = pad.pad;
 
-        // check if the ball hits the left side of the pad
-        if (leftPadDetection(ballObj, padObj)){
-            ball.leftBounce();
-        }
+        // only bounce if the ball is moving downwards
+        if (ball.yDirection > 0){
+            // check if the ball hits the left side of the pad
+            if (leftPadDetection(ballObj, padObj)){
+                ball.leftBounce();
+            }
 
-        // check if the ball hits the middle side of the pad
-        if (midPadDetection(ballObj, padObj)){
-            ball.midBounce();;
-        }
+            // check if the ball hits the middle side of the pad
+            if (midPadDetection(ballObj, padObj)){
+                ball.midBounce();;
+            }
 
-        // check if the ball hits the right side of the pad
-        if (rightPadDetection(ballObj, padObj)){
-            ball.rightBounce();
+            // check if the ball hits the right side of the pad
+            if (rightPadDetection(ballObj, padObj)){
+                ball.rightBounce();
+            }
         }
-        
     }
 
     // left side of pad
