@@ -40,7 +40,7 @@ public class Main extends Application {
     public static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
     public static final int PAD_START_Y = (int) (SIZE * 0.9);
     public static final int BALL_START_Y = PAD_START_Y - RADIUS;
-    public static final int PAD_SPEED = 10;
+    public static final int PAD_SPEED = 3;
 
     // game objects
     static ArrayList<Bouncer> balls = new ArrayList<>();
@@ -62,6 +62,8 @@ public class Main extends Application {
     static int paddleExtensionTime = 0;
     static int ballSpeedTime = 0;
     static int BALL_SPEED = 4;
+    static boolean rightKey = false;
+    static boolean leftKey = false;
 
 
 
@@ -253,9 +255,17 @@ public class Main extends Application {
         ball.bouncer.setCenterY(ball.bouncer.getCenterY() + ball.yDirection * BALL_SPEED);
     }
 
+    void updatePadPos(){
+        if (rightKey){
+            pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
+        } 
+        if (leftKey){
+            pad.pad.setX(Math.min(pad.pad.getX() - PAD_SPEED, SIZE - 20));
+        }
+    }
+
     // edge detection and bounce
     void edgeDetection(Bouncer ball){
-        System.out.println(balls.size());
         // check left edge
         if (ball.bouncer.getCenterX() <= ball.bouncer.getRadius()){
             ball.reverseXDirection();
@@ -271,7 +281,6 @@ public class Main extends Application {
         // check bottom edge
         if (ball.bouncer.getCenterY() >= SIZE - ball.bouncer.getRadius()){
             if (balls.size() <= 1){
-                System.out.println("Test");
                 ball.reset(false);
                 pad.reset();
                 score -= 10;
@@ -505,6 +514,7 @@ public class Main extends Application {
         
         // Add key handling to the new scene
         myScene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
+        myScene.setOnKeyReleased(e -> handleKeyRelease(e.getCode()));
         
         stage.setScene(myScene);
         stage.show();
@@ -608,6 +618,7 @@ public class Main extends Application {
             ballSpeedTime--;
         }
         
+        updatePadPos();
         updateUI();
         checkLoss();
         checkWin();
@@ -615,10 +626,14 @@ public class Main extends Application {
 
     public static void handleKeyInput (KeyCode code) {
         switch (code) {
-            case RIGHT -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
-            case LEFT -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
-            case A -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
-            case D -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
+            // case RIGHT -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
+            case RIGHT -> rightKey = true;
+            // case LEFT -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
+            case LEFT -> leftKey = true;
+            // case A -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
+            case A -> leftKey = true;
+            // case D -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
+            case D -> rightKey = true;
             case R -> {
                 while (balls.size() > 1) {
                     root.getChildren().remove(balls.remove(0).bouncer);
@@ -637,6 +652,15 @@ public class Main extends Application {
             case E -> addBall(balls.get(0));
             case W -> padExt();
             case Q -> speedUpBall();
+        }
+    }
+
+    public static void handleKeyRelease (KeyCode code) {
+        switch (code) {
+            case RIGHT -> rightKey = false;
+            case LEFT -> leftKey = false;
+            case A -> leftKey = false;
+            case D -> rightKey = false;
         }
     }
 
