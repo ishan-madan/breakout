@@ -291,40 +291,27 @@ public class Main extends Application {
         // only bounce if the ball is moving downwards
         if (ball.yDirection > 0){
             // check if the ball hits the left side of the pad
-            if (leftPadDetection(ballObj, padObj)){
+            if (positionalBounce(ballObj, padObj, 1)){
                 ball.leftBounce();
             }
 
             // check if the ball hits the middle side of the pad
-            if (midPadDetection(ballObj, padObj)){
+            if (positionalBounce(ballObj, padObj, 2)){
                 ball.midBounce();;
             }
 
             // check if the ball hits the right side of the pad
-            if (rightPadDetection(ballObj, padObj)){
+            if (positionalBounce(ballObj, padObj, 3)){
                 ball.rightBounce();
             }
         }
     }
 
-    // left side of pad
-    boolean leftPadDetection(Circle ballObj, Rectangle padObj){
-        return (ballObj.getCenterX() > padObj.getX() 
-                && ballObj.getCenterX() <= padObj.getX() + padObj.getWidth() / 3 
-                && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
-    }
-
-    // middle of pad
-    boolean midPadDetection(Circle ballObj, Rectangle padObj){
-        return (ballObj.getCenterX() > padObj.getX() + padObj.getWidth() / 3
-                && ballObj.getCenterX() <= padObj.getX() + 2*padObj.getWidth() / 3 
-                && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
-    }
-
-    // right side of pad
-    boolean rightPadDetection(Circle ballObj, Rectangle padObj){
-        return (ballObj.getCenterX() > padObj.getX() + 2*padObj.getWidth() / 3 
-                && ballObj.getCenterX() <= padObj.getX() + padObj.getWidth() 
+    // TODO: modify this so that it changes the angle of bounce depending on how far out you hit the pad
+    // general method to detect a positional bounce
+    boolean positionalBounce(Circle ballObj, Rectangle padObj, int position){
+        return (ballObj.getCenterX() > padObj.getX() + (position - 1) * padObj.getWidth() / 3
+                && ballObj.getCenterX() <= padObj.getX() + position*padObj.getWidth() / 3 
                 && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
     }
 
