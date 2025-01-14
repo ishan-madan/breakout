@@ -428,6 +428,7 @@ public class Main extends Application {
     public static void checkWin() {
         if (tiles.isEmpty() && currLevel < 3){
             loadNewScene(++currLevel);
+            score += 20;
         } else if (tiles.isEmpty() && currLevel >= 3) {
             animation.stop();
             stage.setScene(createEndScreen(true));
