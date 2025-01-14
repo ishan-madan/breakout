@@ -51,6 +51,8 @@ public class Main extends Application {
     static ArrayList<Tile> tiles;
     static Stage stage;
     static Timeline animation;
+    static Text livesText;
+    static Text scoreText;
 
     // global vars
     static int lives = 3;
@@ -440,8 +442,12 @@ public class Main extends Application {
         }
     }
 
+    // update the UI elements
+    public static void updateUI() {
+        livesText.setText("Lives: " + lives);
+        scoreText.setText("Score: " + score);
+    }
     // set new scene
-    // Modified loadNewScene method
     public static void loadNewScene(int lvlNum) {
         // Initialize game objects if they don't exist
         initializeGameObjects();
@@ -456,8 +462,17 @@ public class Main extends Application {
         pad.reset();
         ball.reset(true);
 
+        // add UI elements
+        livesText = new Text(10, 20, "Lives: " + lives);
+        livesText.setFill(Color.WHITE);
+        livesText.setFont(Font.font(16));
+
+        scoreText = new Text(SIZE - 80, 20, "Score: " + score);
+        scoreText.setFill(Color.WHITE);
+        scoreText.setFont(Font.font(16));
+
         // Add pad and ball to the new root
-        root.getChildren().addAll(pad.pad, ball.bouncer);
+        root.getChildren().addAll(pad.pad, ball.bouncer, livesText, scoreText);
 
         // Load new tiles
         tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
@@ -522,6 +537,7 @@ public class Main extends Application {
         padDetection();
         checkTileCollisions();
         // System.out.println(lives);
+        updateUI();
         checkLoss();
         checkWin();
     }
