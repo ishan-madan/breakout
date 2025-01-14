@@ -44,7 +44,7 @@ public class Main extends Application {
     public static final int PAD_SPEED = 10;
 
     // game objects
-    static Bouncer ball;
+    static ArrayList<Bouncer> balls = new ArrayList<>();
     static Scene myScene;
     static Pad pad;
     static Group root;
@@ -140,18 +140,25 @@ public class Main extends Application {
     // tile class
     static class Tile {
         public Rectangle tile;
-        public boolean broken;
-        public int powerType;
+        public char powerType;
+        int health;
 
-        public Tile(int x, int y, boolean broken){
+        public Tile(int x, int y, char powerType){
             this.tile = new Rectangle(x, y, 40, 20);
-            this.broken = broken;
-        }
-
-        public Tile(int x, int y, boolean broken, int powerType){
-            this.tile = new Rectangle(x, y, 40, 20);
-            this.broken = broken;
             this.powerType = powerType;
+            setColor();
+        }
+        
+        public void setColor(){
+            if(powerType == '1'){
+                tile.setFill(Color.BLACK);;
+            } else if (powerType == 'x'){
+                tile.setFill(Color.LIMEGREEN);
+            } else if (powerType == 'y'){
+                tile.setFill(Color.YELLOW);
+            } else if (powerType == 'z'){
+                tile.setFill(Color.PALETURQUOISE);
+            }
         }
     }
 
@@ -226,24 +233,26 @@ public class Main extends Application {
     // initialize game objects
     public static void initializeGameObjects() {
         // Initialize game objects if they don't exist
+        balls.clear();
         if (root == null) root = new Group();
-        if (ball == null) {
-            ball = new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
-                              Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED);
-            ball.bouncer.setFill(Color.LIGHTSTEELBLUE);
+        if (balls == null || balls.size() == 0) {
+            balls.add(new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
+                              Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED));
+            balls.get(0).bouncer.setFill(Color.LIGHTSTEELBLUE);
         }
         if (pad == null) pad = new Pad();
         if (tiles == null) tiles = new ArrayList<>();
     }
 
     // update ball position
-    void updateBallPos(){
+    void updateBallPos(Bouncer ball){
         ball.bouncer.setCenterX(ball.bouncer.getCenterX() + ball.xDirection * ball.speed);
         ball.bouncer.setCenterY(ball.bouncer.getCenterY() + ball.yDirection * ball.speed);
     }
 
     // edge detection and bounce
-    void edgeDetection(){
+    void edgeDetection(Bouncer ball){
+        System.out.println(balls.size());
         // check left edge
         if (ball.bouncer.getCenterX() <= ball.bouncer.getRadius()){
             ball.reverseXDirection();
@@ -258,14 +267,20 @@ public class Main extends Application {
         }
         // check bottom edge
         if (ball.bouncer.getCenterY() >= SIZE - ball.bouncer.getRadius()){
-            ball.reset(false);
-            pad.reset();
-            score -= 10;
+            if (balls.size() <= 1){
+                System.out.println("Test");
+                ball.reset(false);
+                pad.reset();
+                score -= 10;
+            } else {
+                balls.remove(ball);
+                root.getChildren().remove(ball.bouncer);
+            }
         }
     }
 
     // pad collision detection
-    void padDetection() { 
+    void padDetection(Bouncer ball) { 
         // grab circle and rectangle properties of the ball and pad
         Circle ballObj = ball.bouncer;
         Rectangle padObj = pad.pad;
@@ -323,8 +338,8 @@ public class Main extends Application {
                 // split input
                 int col = 0;
                 for (char c : line.toCharArray()){
-                    if (c == '1'){
-                        tiles.add(new Tile(col*40, row*20+80, false));
+                    if (c != '0'){
+                        tiles.add(new Tile(col*40, row*20+80, c));
                     }
                     col++;
                 }
@@ -396,12 +411,18 @@ public class Main extends Application {
     }
 
     // check to see if th ball has collided with any tiles
-    public static Tile checkTileCollisions(){
+    public static Tile checkTileCollisions(Bouncer ball){
         for (Tile tile : tiles){
             // get contact side (if any)
             int contactSide = tileCollide(ball.bouncer, tile.tile);
 
             if (contactSide != 0){
+                // give powerup if needed
+                if(tile.powerType == 'x'){
+                    addBall(ball);
+                    score += 5;
+                }
+
                 // kill tile
                 tiles.remove(tile);
                 root.getChildren().remove(tile.tile);
@@ -448,6 +469,7 @@ public class Main extends Application {
         livesText.setText("Lives: " + lives);
         scoreText.setText("Score: " + score);
     }
+    
     // set new scene
     public static void loadNewScene(int lvlNum) {
         // Initialize game objects if they don't exist
@@ -461,7 +483,7 @@ public class Main extends Application {
 
         // Reset pad and ball
         pad.reset();
-        ball.reset(true);
+        balls.get(0).reset(true);
 
         // add UI elements
         livesText = new Text(10, 20, "Lives: " + lives);
@@ -473,7 +495,7 @@ public class Main extends Application {
         scoreText.setFont(Font.font(16));
 
         // Add pad and ball to the new root
-        root.getChildren().addAll(pad.pad, ball.bouncer, livesText, scoreText);
+        root.getChildren().addAll(pad.pad, balls.get(0).bouncer, livesText, scoreText);
 
         // Load new tiles
         tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
@@ -500,14 +522,22 @@ public class Main extends Application {
         }
     }
 
+    public static void addBall(Bouncer ball){
+        balls.add(new Bouncer(new Circle(ball.bouncer.getCenterX(), ball.bouncer.getCenterY(), RADIUS), 
+        Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED));
+        balls.get(balls.size() - 1).bouncer.setFill(Color.LIGHTSTEELBLUE);
+
+        root.getChildren().add(balls.get(balls.size() - 1).bouncer);
+    }
 
     @Override
     public void start(Stage tempStage) {
         stage = tempStage;
+        balls.clear();
         // Initialize game objects
-        ball = new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
-                        Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED);
-        ball.bouncer.setFill(Color.LIGHTSTEELBLUE);
+        balls.add(new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
+                        Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED));
+        balls.get(0).bouncer.setFill(Color.LIGHTSTEELBLUE);
         pad = new Pad();
         
         // Show start screen instead of going directly to the game
@@ -533,10 +563,18 @@ public class Main extends Application {
     }
 
     private void step (double elapsedTime) {
-        updateBallPos();
-        edgeDetection();
-        padDetection();
-        checkTileCollisions();
+        int numOfballs = balls.size();
+
+        for (Bouncer ball : balls){
+            updateBallPos(ball);
+            edgeDetection(ball);
+            // if a ball gets removed, then brek out of loop
+            if (balls.size() != numOfballs){
+                break;
+            }
+            padDetection(ball);
+            checkTileCollisions(ball);
+        }
         // System.out.println(lives);
         updateUI();
         checkLoss();
@@ -549,11 +587,22 @@ public class Main extends Application {
             case LEFT -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
             case A -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
             case D -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
-            case R -> {ball.reset(true); pad.reset();}
+            case R -> {
+                while (balls.size() > 1) {
+                    root.getChildren().remove(balls.remove(0).bouncer);
+
+                }
+                balls.get(0).reset(true); 
+                pad.reset();}
             case L -> lives++;
             case M -> lives--;
             case B -> removeRandomBlock();
-            case X -> ball.reverseXDirection();
+            case X -> {
+                for (Bouncer ball : balls){
+                    ball.reverseXDirection();
+                }
+            }
+            case E -> addBall(balls.get(0));
         }
     }
 
