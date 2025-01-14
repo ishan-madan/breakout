@@ -45,6 +45,7 @@ public class Main extends Application {
     static Group root;
     static ArrayList<Tile> tiles;
     static Stage stage;
+    static Timeline animation;
 
     // global vars
     static int lives = 3;
@@ -338,6 +339,14 @@ public class Main extends Application {
         }
     }
 
+    // check to see if out of lives
+    public static void checkLoss(){
+        if (lives <= 0){
+            System.out.println("LOSE");
+            animation.pause();
+        }
+    }
+
     // set new scene
     public static void loadNewScene(int lvlNum) {
         // Clear previous objects
@@ -372,6 +381,7 @@ public class Main extends Application {
         }
     }
 
+
     @Override
     public void start(Stage tempStage) {
         // initialize stage
@@ -401,7 +411,7 @@ public class Main extends Application {
         stage.show();
 
         // Start the animation loop
-        Timeline animation = new Timeline();
+        animation = new Timeline();
         animation.setCycleCount(Timeline.INDEFINITE);
         animation.getKeyFrames().add(new KeyFrame(Duration.seconds(SECOND_DELAY), e -> step(SECOND_DELAY)));
         animation.play();
@@ -423,6 +433,7 @@ public class Main extends Application {
         padDetection();
         checkTileCollisions();
 
+        checkLoss();
         checkWin();
     }
 
