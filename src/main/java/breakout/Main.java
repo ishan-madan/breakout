@@ -49,6 +49,7 @@ public class Main extends Application {
 
     // global vars
     static int lives = 3;
+    static int currLevel = 1;
 
 
 
@@ -95,8 +96,10 @@ public class Main extends Application {
         }
 
         public void reset(boolean manualReset) {
-            // decrease lives
-            lives--;
+            // decrease lives if it isnt a manual reset or next level
+            if (!manualReset){
+                lives--;
+            }
             // reset location
             bouncer.setCenterX(SIZE/2);
             bouncer.setCenterY(BALL_START_Y);
@@ -335,7 +338,7 @@ public class Main extends Application {
         // if out of tiles, console FOR NOW
         // TODO
         if (tiles.isEmpty()){
-            loadNewScene(2);
+            loadNewScene(++currLevel);
         }
     }
 
@@ -432,7 +435,7 @@ public class Main extends Application {
         edgeDetection();
         padDetection();
         checkTileCollisions();
-
+        // System.out.println(lives);
         checkLoss();
         checkWin();
     }
