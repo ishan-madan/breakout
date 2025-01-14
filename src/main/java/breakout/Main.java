@@ -420,24 +420,19 @@ public class Main extends Application {
             int contactSide = tileCollideDetect(ball.bouncer, tile.tile);
 
             if (contactSide != 0){
-                // give powerup if needed
-                if(tile.powerType == 'x'){
-                    addBall(ball);
-                    score += 5;
-                } else if (tile.powerType == 'y'){
-                    padExt();
-                    score += 5;
-                } else if (tile.powerType == 'z'){
-                    speedUpBall();
-                    score += 5;
+                // turn on powerup
+                switch (tile.powerType) {
+                    case 'x': addBall(ball);
+                    case 'y': padExt();
+                    case 'z': speedUpBall();
                 }
+
+                // increase score based on if it was a powerup tile
+                score += (tile.powerType != '1') ? 10 : 5;
 
                 // kill tile
                 tiles.remove(tile);
                 root.getChildren().remove(tile.tile);
-
-                // increase score
-                score += 5;
 
                 // bounce off side depending on side of tile that is hit
                 if (contactSide == 1){
