@@ -626,13 +626,9 @@ public class Main extends Application {
 
     public static void handleKeyInput (KeyCode code) {
         switch (code) {
-            // case RIGHT -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
             case RIGHT -> rightKey = true;
-            // case LEFT -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
             case LEFT -> leftKey = true;
-            // case A -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
             case A -> leftKey = true;
-            // case D -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
             case D -> rightKey = true;
             case R -> {
                 while (balls.size() > 1) {
@@ -652,6 +648,7 @@ public class Main extends Application {
             case E -> addBall(balls.get(0));
             case W -> padExt();
             case Q -> speedUpBall();
+            // TODO: create paddle speed powerup
         }
     }
 

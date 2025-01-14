@@ -4,84 +4,77 @@
 
 #### Examples
 
-You need to put blank lines to write some text
-
-in separate paragraphs.
-
-
-Emphasis, aka italics, with *asterisks* or _underscores_.
-
-Strong emphasis, aka bold, with **asterisks** or __underscores__.
-
-Combined emphasis with **asterisks and _underscores_**.
-
-
-You can also make lists:
-* Bullets are made with asterisks
-1. You can order things with numbers.
-
-
-You can put links in like this: [Duke CompSci](https://www.cs.duke.edu)
-
-
-
 ## Interesting Breakout Variants
 
- * Idea #1
+ * One variant of breakout that I think is really cool is *Breakthru*. In this variant, instead of bouncing off the tiles, the ball simply passes through the block and kills it. I think this is cool because it can be intrgrated into the standard breakout game as a powerup.
 
- * Idea #2
+ * Another variant of breakout i find interesting is Pinball breakout. I think this is a really cool way to mix 2 classic games to create interesting new mechanics and fun gameplay.
 
 
 ## Paddle Ideas
 
- * Idea #1
+ * I really want to make the ball bounce differently based on the part of the paddle that it hits. I feel like this is an important part of the original game and allows for a more skills based gameplay.
 
- * Idea #2
+ * Another thing that I am thinking of adding is a paddle speed powerup. This powerup would increase the speed of the paddle for a predetermined amount of time to help the user get to the ball faster.
 
 
 ## Block Ideas
 
- * Idea #1
+ * One block idea I have is taking multiple hits to kill the tile
 
- * Idea #2
+ * Another one is a powerup block that will be a predetermined powerup
 
- * Idea #3
+ * A third block idea I have is a respawn block, which, once killed, will respawn at a different predetermined location.
 
 
 ## Power-up Ideas
 
- * Idea #1
+ * Bigger paddle
 
- * Idea #2
+ * Adding a ball to the game (until it dies)
 
- * Idea #3
+ * Speed up the ball
+
+ * Speed up the paddle
 
 
 ## Cheat Key Ideas
 
- * Idea #1
+ * Reset
 
- * Idea #2
+ * Add lives
 
- * Idea #3
+ * Remove Lives
 
- * Idea #4
+ * Remove random block
+
+ * Reverse the x-direction
+
+ * Add a ball
+
+ * Extend the paddle
+
+ * Speed up the ball
+
+ * Increase paddle speed
 
 
 ## Level Descriptions
 
- * Idea #1
+ * The first level will be a checkered grid. This will be standard
 
- * Idea #2
+ * The second level will be a massive 4x10 block of tiles. In this level, the ball will move a little bit faster
+
+ * The third level will be a spiral and the paddle will also be a little bit smaller, which will make it harder to play.
 
 
 ## Class Ideas
 
- * Idea #1
+ * Ball/Bounce class. This will have a reverseYDirection() method to reverse the Y direction when it hits the pad
 
- * Idea #2
+ * Pad class. This will have a reset() method which will be used to reset the paddle upon player death.
 
- * Idea #3
+ * Tile class. This will have a setColor() method, which will set the color of the tile based on its powerup type.
 
- * Idea #4
+ * SplashScreen class. This will a createScreen() method that will create the splash screen for the start of the game.
 
