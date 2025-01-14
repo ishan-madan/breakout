@@ -70,9 +70,9 @@ public class Main extends Application {
     // classes
     // bouncer class
     static class Bouncer {
-        public Circle bouncer;
-        public double xDirection;
-        public double yDirection;
+        Circle bouncer;
+        double xDirection;
+        double yDirection;
 
         public Bouncer(Circle bouncer, double xDirection, double yDirection) {
             // normalization
@@ -82,6 +82,29 @@ public class Main extends Application {
             this.yDirection = -1 / hyp;
         }
 
+        // get methods
+        public Circle getBouncer() {
+            return bouncer;
+        }
+
+        public double getXDir() {
+            return xDirection;
+        }
+
+        public double getYDir() {
+            return yDirection;
+        }
+
+        // set methods
+        public void sexXDir(double val) {
+            xDirection = val;
+        }
+
+        public void setYDir(double val) {
+            yDirection = val;
+        }
+
+        // other methods
         public void reverseXDirection(){
             xDirection *= -1;
         }
@@ -90,21 +113,18 @@ public class Main extends Application {
             yDirection *= -1;
         }
 
-        public void leftBounce(){
-            // want negative x movement
-            xDirection = Math.abs(xDirection) * -1;
-            reverseYDirection();;
-        }
+        public void dirBounce(int direction) {
+            // left side
+            if (direction == -1){
+                xDirection = Math.abs(xDirection) * -1;
+            }
+            // right side
+            else if (direction == 1) {
+                xDirection = Math.abs(xDirection);
+            }
 
-        public void midBounce(){
-            // do nt alter x movment, just contine x directional motion
-            reverseYDirection();;
-        }
-        
-        public void rightBounce(){
-            // want positive x movement
-            xDirection = Math.abs(xDirection);
-            reverseYDirection();;
+            // boucne off pad
+            reverseYDirection();
         }
 
         public void reset(boolean manualReset) {
@@ -123,11 +143,16 @@ public class Main extends Application {
             this.yDirection = newY / newHyp;
             BALL_SPEED = 4;
         }
+
+        public void updatePos() {
+            bouncer.setCenterX(bouncer.getCenterX() + xDirection * BALL_SPEED);
+            bouncer.setCenterY(bouncer.getCenterY() + yDirection * BALL_SPEED);
+        }
     }
 
     // pad class
     static class Pad {
-        public Rectangle pad;
+        Rectangle pad;
 
         public Pad() {
             this.pad = new Rectangle(0, 300, 100, 10);
@@ -135,10 +160,24 @@ public class Main extends Application {
             this.reset();
         }
 
+        // get methods
+        public Rectangle getPad() {
+            return pad;
+        }
+
         public void reset(){
             pad.setWidth(100);
             pad.setX(SIZE/2 - pad.getWidth()/2);
             pad.setY(PAD_START_Y);
+        }
+
+        void updatePos(){
+            if (rightKey){
+                pad.setX(Math.min(pad.getX() + PAD_SPEED, SIZE - 20));
+            } 
+            if (leftKey){
+                pad.setX(Math.min(pad.getX() - PAD_SPEED, SIZE - 20));
+            }
         }
     }
 
@@ -249,21 +288,6 @@ public class Main extends Application {
         if (tiles == null) tiles = new ArrayList<>();
     }
 
-    // update ball position
-    void updateBallPos(Bouncer ball){
-        ball.bouncer.setCenterX(ball.bouncer.getCenterX() + ball.xDirection * BALL_SPEED);
-        ball.bouncer.setCenterY(ball.bouncer.getCenterY() + ball.yDirection * BALL_SPEED);
-    }
-
-    void updatePadPos(){
-        if (rightKey){
-            pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
-        } 
-        if (leftKey){
-            pad.pad.setX(Math.min(pad.pad.getX() - PAD_SPEED, SIZE - 20));
-        }
-    }
-
     // edge detection and bounce
     void edgeDetection(Bouncer ball){
         // check left edge
@@ -301,17 +325,17 @@ public class Main extends Application {
         if (ball.yDirection > 0){
             // check if the ball hits the left side of the pad
             if (positionalBounce(ballObj, padObj, 1)){
-                ball.leftBounce();
+                ball.dirBounce(-1);
             }
 
             // check if the ball hits the middle side of the pad
             if (positionalBounce(ballObj, padObj, 2)){
-                ball.midBounce();;
+                ball.dirBounce(0);
             }
 
             // check if the ball hits the right side of the pad
             if (positionalBounce(ballObj, padObj, 3)){
-                ball.rightBounce();
+                ball.dirBounce(1);
             }
         }
     }
@@ -596,7 +620,7 @@ public class Main extends Application {
         int numOfballs = balls.size();
 
         for (Bouncer ball : balls){
-            updateBallPos(ball);
+            ball.updatePos();
             edgeDetection(ball);
             // if a ball gets removed, then brek out of loop
             if (balls.size() != numOfballs){
@@ -618,7 +642,7 @@ public class Main extends Application {
             ballSpeedTime--;
         }
         
-        updatePadPos();
+        pad.updatePos();
         updateUI();
         checkLoss();
         checkWin();
