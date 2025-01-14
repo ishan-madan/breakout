@@ -8,13 +8,18 @@ import java.util.Scanner;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -146,8 +151,77 @@ public class Main extends Application {
         }
     }
 
+    // splash screen creation methods
+    public static Scene createStartScreen() {
+        VBox startLayout = new VBox(20); // 20 is spacing between elements
+        startLayout.setAlignment(Pos.CENTER);
+        
+        Text title = new Text("BREAKOUT");
+        title.setFont(Font.font(48));
+        title.setFill(DUKE_BLUE);
+        
+        Text instructions = new Text("Use LEFT/RIGHT arrows or A/D to move the paddle");
+        instructions.setFont(Font.font(20));
+        instructions.setFill(Color.WHITE);
+        
+        Button startButton = new Button("Start Game");
+        startButton.setOnAction(e -> {
+            loadNewScene(1);
+            animation.play();
+        });
+        
+        startLayout.getChildren().addAll(title, instructions, startButton);
+        
+        Scene startScene = new Scene(startLayout, SIZE, SIZE, DUKE_BLUE);
+        startScene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.SPACE) {
+                loadNewScene(1);
+                animation.play();
+            }
+        });
+        
+        return startScene;
+    }
+
+    public static Scene createEndScreen(boolean won) {
+        VBox endLayout = new VBox(20);
+        endLayout.setAlignment(Pos.CENTER);
+        
+        Text endText = new Text(won ? "YOU WIN!" : "GAME OVER");
+        endText.setFont(Font.font(48));
+        endText.setFill(Color.WHITE);
+        
+        Button restartButton = new Button("Play Again");
+        restartButton.setOnAction(e -> {
+            currLevel = 1;
+            lives = 3;
+            loadNewScene(1);
+            animation.play();
+        });
+        
+        Button quitButton = new Button("Quit");
+        quitButton.setOnAction(e -> stage.close());
+        
+        endLayout.getChildren().addAll(endText, restartButton, quitButton);
+        
+        return new Scene(endLayout, SIZE, SIZE, DUKE_BLUE);
+    }
+
 
     // helper methods
+
+    // initialize game objects
+    public static void initializeGameObjects() {
+        // Initialize game objects if they don't exist
+        if (root == null) root = new Group();
+        if (ball == null) {
+            ball = new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
+                              Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED);
+            ball.bouncer.setFill(Color.LIGHTSTEELBLUE);
+        }
+        if (pad == null) pad = new Pad();
+        if (tiles == null) tiles = new ArrayList<>();
+    }
 
     // update ball position
     void updateBallPos(){
@@ -335,45 +409,56 @@ public class Main extends Application {
 
     // check to see if the tiles are all killed
     public static void checkWin() {
-        // if out of tiles, console FOR NOW
-        // TODO
-        if (tiles.isEmpty()){
+        if (tiles.isEmpty() && currLevel < 3){
             loadNewScene(++currLevel);
+        } else if (tiles.isEmpty() && currLevel >= 3) {
+            animation.stop();
+            stage.setScene(createEndScreen(true));
         }
     }
 
     // check to see if out of lives
     public static void checkLoss(){
         if (lives <= 0){
-            System.out.println("LOSE");
-            animation.pause();
+            animation.stop();
+            stage.setScene(createEndScreen(false));
         }
     }
 
     // set new scene
-    public static void loadNewScene(int lvlNum) {
-        // Clear previous objects
-        root.getChildren().clear();
-        tiles.clear();
+    // Modified loadNewScene method
+public static void loadNewScene(int lvlNum) {
+    // Initialize game objects if they don't exist
+    initializeGameObjects();
     
-        // Reset pad and ball
-        pad.reset();
-        ball.reset(true);
-    
-        // Add pad and ball back to the root
-        root.getChildren().addAll(pad.pad, ball.bouncer);
-    
-        // Load new tiles
-        tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
-        for (Tile tile : tiles) {
-            root.getChildren().add(tile.tile);
-        }
-    
-        // Create a new scene and set it on the stage
-        Scene newScene = new Scene(root, SIZE, SIZE, DUKE_BLUE);
-        stage.setScene(newScene);
-        stage.show();
+    // Create a new root Group for the new scene
+    root = new Group();
+
+    // Clear tiles
+    tiles.clear();
+
+    // Reset pad and ball
+    pad.reset();
+    ball.reset(true);
+
+    // Add pad and ball to the new root
+    root.getChildren().addAll(pad.pad, ball.bouncer);
+
+    // Load new tiles
+    tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
+    for (Tile tile : tiles) {
+        root.getChildren().add(tile.tile);
     }
+
+    // Create a new scene and set it on the stage
+    myScene = new Scene(root, SIZE, SIZE, DUKE_BLUE);
+    
+    // Add key handling to the new scene
+    myScene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
+    
+    stage.setScene(myScene);
+    stage.show();
+}
     
     // remove a random block on the screen
     public static void removeRandomBlock(){
@@ -387,37 +472,23 @@ public class Main extends Application {
 
     @Override
     public void start(Stage tempStage) {
-        // initialize stage
         stage = tempStage;
-
-        // Initialize ball and paddle
-        ball = new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED);
+        // Initialize game objects
+        ball = new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
+                        Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED);
         ball.bouncer.setFill(Color.LIGHTSTEELBLUE);
         pad = new Pad();
-
-        // create all tiles
-        tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl1.txt"));
-
-        // Set up the scene using the global myScene
-        myScene = setupScene(SIZE, SIZE, DUKE_BLUE);
-        root = (Group) myScene.getRoot();
-        root.getChildren().addAll(ball.bouncer, pad.pad);
         
-        // add all tiles
-        for (Tile tile : tiles){
-            root.getChildren().addAll(tile.tile);
-        }
-
-        // Set up the stage
-        stage.setScene(myScene);
+        // Show start screen instead of going directly to the game
+        stage.setScene(createStartScreen());
         stage.setTitle(TITLE);
         stage.show();
-
-        // Start the animation loop
+        
+        // Initialize animation timeline (but don't start it yet)
         animation = new Timeline();
         animation.setCycleCount(Timeline.INDEFINITE);
-        animation.getKeyFrames().add(new KeyFrame(Duration.seconds(SECOND_DELAY), e -> step(SECOND_DELAY)));
-        animation.play();
+        animation.getKeyFrames().add(new KeyFrame(Duration.seconds(SECOND_DELAY), 
+                                    e -> step(SECOND_DELAY)));
     }
 
     public Scene setupScene(int width, int height, Paint background) {
@@ -440,7 +511,7 @@ public class Main extends Application {
         checkWin();
     }
 
-    private void handleKeyInput (KeyCode code) {
+    public static void handleKeyInput (KeyCode code) {
         switch (code) {
             case RIGHT -> pad.pad.setX(Math.min(pad.pad.getX() + PAD_SPEED, SIZE - 20));
             case LEFT -> pad.pad.setX(Math.max(pad.pad.getX() - PAD_SPEED, 20 - pad.pad.getWidth()));
