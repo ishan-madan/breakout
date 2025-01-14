@@ -422,9 +422,9 @@ public class Main extends Application {
             if (contactSide != 0){
                 // turn on powerup
                 switch (tile.powerType) {
-                    case 'x': addBall(ball);
-                    case 'y': padExt();
-                    case 'z': speedUpBall();
+                    case 'x': {addBall(ball); break;}
+                    case 'y': {padExt(); break;}
+                    case 'z': {speedUpBall(); break;}
                 }
 
                 // increase score based on if it was a powerup tile
