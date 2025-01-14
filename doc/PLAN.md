@@ -76,5 +76,5 @@
 
  * Tile class. This will have a setColor() method, which will set the color of the tile based on its powerup type.
 
- * SplashScreen class. This will a createScreen() method that will create the splash screen for the start of the game.
+ * Powerup class. This will have a setPowerup() method which will set the said powerup for a set amount of time.
 
