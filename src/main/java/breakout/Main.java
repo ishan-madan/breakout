@@ -40,7 +40,6 @@ public class Main extends Application {
     public static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
     public static final int PAD_START_Y = (int) (SIZE * 0.9);
     public static final int BALL_START_Y = PAD_START_Y - RADIUS;
-    public static final int BALL_SPEED = 4;
     public static final int PAD_SPEED = 10;
 
     // game objects
@@ -60,6 +59,8 @@ public class Main extends Application {
     static int highscore = 0;
     static int score = 0;
     static int paddleExtensionTime = 0;
+    static int ballSpeedTime = 0;
+    static int BALL_SPEED = 4;
 
 
 
@@ -69,15 +70,13 @@ public class Main extends Application {
         public Circle bouncer;
         public double xDirection;
         public double yDirection;
-        public double speed;
 
-        public Bouncer(Circle bouncer, double xDirection, double yDirection, double speed) {
+        public Bouncer(Circle bouncer, double xDirection, double yDirection) {
             // normalization
             double hyp = Math.sqrt(xDirection*xDirection + 1);
             this.bouncer = bouncer;
             this.xDirection = xDirection / hyp;
             this.yDirection = -1 / hyp;
-            this.speed = speed;
         }
 
         public void reverseXDirection(){
@@ -119,6 +118,7 @@ public class Main extends Application {
             double newHyp = Math.sqrt(newX*newX + newY*newY);
             this.xDirection = newX / newHyp;
             this.yDirection = newY / newHyp;
+            BALL_SPEED = 4;
         }
     }
 
@@ -239,7 +239,7 @@ public class Main extends Application {
         if (root == null) root = new Group();
         if (balls == null || balls.size() == 0) {
             balls.add(new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
-                              Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED));
+                              Math.random() * 2 - 1, Math.random() * 2 - 1));
             balls.get(0).bouncer.setFill(Color.LIGHTSTEELBLUE);
         }
         if (pad == null) pad = new Pad();
@@ -248,8 +248,8 @@ public class Main extends Application {
 
     // update ball position
     void updateBallPos(Bouncer ball){
-        ball.bouncer.setCenterX(ball.bouncer.getCenterX() + ball.xDirection * ball.speed);
-        ball.bouncer.setCenterY(ball.bouncer.getCenterY() + ball.yDirection * ball.speed);
+        ball.bouncer.setCenterX(ball.bouncer.getCenterX() + ball.xDirection * BALL_SPEED);
+        ball.bouncer.setCenterY(ball.bouncer.getCenterY() + ball.yDirection * BALL_SPEED);
     }
 
     // edge detection and bounce
@@ -426,6 +426,9 @@ public class Main extends Application {
                 } else if (tile.powerType == 'y'){
                     padExt();
                     score += 5;
+                } else if (tile.powerType == 'z'){
+                    speedUpBall();
+                    score += 5;
                 }
 
                 // kill tile
@@ -530,7 +533,7 @@ public class Main extends Application {
     // add a new ball powerup
     public static void addBall(Bouncer ball){
         balls.add(new Bouncer(new Circle(ball.bouncer.getCenterX(), ball.bouncer.getCenterY(), RADIUS), 
-        Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED));
+        Math.random() * 2 - 1, Math.random() * 2 - 1));
         balls.get(balls.size() - 1).bouncer.setFill(Color.LIGHTSTEELBLUE);
 
         root.getChildren().add(balls.get(balls.size() - 1).bouncer);
@@ -549,13 +552,22 @@ public class Main extends Application {
         pad.pad.setWidth(100);
     }
 
+    public static void speedUpBall(){
+        BALL_SPEED *= 1.5;
+        ballSpeedTime = 300;
+    }
+
+    public static void resetBallSpeed() {
+        BALL_SPEED = 4;
+    }
+
     @Override
     public void start(Stage tempStage) {
         stage = tempStage;
         balls.clear();
         // Initialize game objects
         balls.add(new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
-                        Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED));
+                        Math.random() * 2 - 1, Math.random() * 2 - 1));
         balls.get(0).bouncer.setFill(Color.LIGHTSTEELBLUE);
         pad = new Pad();
         
@@ -600,6 +612,12 @@ public class Main extends Application {
         } else {
             paddleExtensionTime--;
         }
+
+        if (ballSpeedTime == 0){
+            resetBallSpeed();
+        } else {
+            ballSpeedTime--;
+        }
         
         updateUI();
         checkLoss();
@@ -629,6 +647,7 @@ public class Main extends Application {
             }
             case E -> addBall(balls.get(0));
             case W -> padExt();
+            case Q -> speedUpBall();
         }
     }
 
