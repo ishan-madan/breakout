@@ -59,6 +59,7 @@ public class Main extends Application {
     static int currLevel = 1;
     static int highscore = 0;
     static int score = 0;
+    static int paddleExtensionTime = 0;
 
 
 
@@ -132,6 +133,7 @@ public class Main extends Application {
         }
 
         public void reset(){
+            pad.setWidth(100);
             pad.setX(SIZE/2 - pad.getWidth()/2);
             pad.setY(PAD_START_Y);
         }
@@ -421,6 +423,9 @@ public class Main extends Application {
                 if(tile.powerType == 'x'){
                     addBall(ball);
                     score += 5;
+                } else if (tile.powerType == 'y'){
+                    padExt();
+                    score += 5;
                 }
 
                 // kill tile
@@ -522,12 +527,26 @@ public class Main extends Application {
         }
     }
 
+    // add a new ball powerup
     public static void addBall(Bouncer ball){
         balls.add(new Bouncer(new Circle(ball.bouncer.getCenterX(), ball.bouncer.getCenterY(), RADIUS), 
         Math.random() * 2 - 1, Math.random() * 2 - 1, BALL_SPEED));
         balls.get(balls.size() - 1).bouncer.setFill(Color.LIGHTSTEELBLUE);
 
         root.getChildren().add(balls.get(balls.size() - 1).bouncer);
+    }
+
+    // make paddle wider powerup
+    public static void padExt(){
+        if (pad.pad.getWidth() != 150){
+            pad.pad.setWidth(150);
+            pad.pad.setX(pad.pad.getX() - 25);
+        }
+        paddleExtensionTime = 300;
+    }
+
+    public static void padWidthReset() {
+        pad.pad.setWidth(100);
     }
 
     @Override
@@ -575,7 +594,13 @@ public class Main extends Application {
             padDetection(ball);
             checkTileCollisions(ball);
         }
-        // System.out.println(lives);
+
+        if (paddleExtensionTime == 0){
+            padWidthReset();
+        } else {
+            paddleExtensionTime--;
+        }
+        
         updateUI();
         checkLoss();
         checkWin();
@@ -603,6 +628,7 @@ public class Main extends Application {
                 }
             }
             case E -> addBall(balls.get(0));
+            case W -> padExt();
         }
     }
 
