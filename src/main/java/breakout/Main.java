@@ -592,6 +592,10 @@ public class Main extends Application {
     
     // set new scene
     public static void loadNewScene(int lvlNum) {
+        // reset keydown bools
+        leftKey = false;
+        rightKey = false;
+        
         // Initialize game objects if they don't exist
         initializeGameObjects();
         
