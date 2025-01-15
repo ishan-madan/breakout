@@ -344,8 +344,8 @@ public class Main extends Application {
         instructions.setFill(DUKE_BLUE);
 
         Text hs = new Text("Highscore: " + highscore);
-        instructions.setFont(Font.font(15));
-        instructions.setFill(DUKE_BLUE);
+        hs.setFont(Font.font(15));
+        hs.setFill(DUKE_BLUE);
         
         Button startButton = new Button("Start Game");
         startButton.setOnAction(e -> {
@@ -395,6 +395,41 @@ public class Main extends Application {
         return new Scene(endLayout, SIZE, SIZE, DUKE_BLUE);
     }
 
+    public static Scene midLevelSplash(int lvl) {
+        animation.pause();
+        VBox midLayout = new VBox(20); // 20 is spacing between elements
+        midLayout.setAlignment(Pos.CENTER);
+        
+        Text hs = new Text("Level " + (lvl-1) + " Complete!");
+        hs.setFont(Font.font(25));
+        hs.setFill(DUKE_BLUE);
+
+        Text scoreTxt = new Text("Score: " + score);
+        scoreTxt.setFont(Font.font(25));
+        scoreTxt.setFill(DUKE_BLUE);
+        
+        Text livesTxt = new Text("You have " + lives + " lives remaining!");
+        livesTxt.setFont(Font.font(15));
+        livesTxt.setFill(DUKE_BLUE);
+        
+        Button startButton = new Button("Next Level");
+        startButton.setOnAction(e -> {
+            loadNewScene(lvl);
+            animation.play();
+        });
+        
+        midLayout.getChildren().addAll(hs, scoreTxt, livesTxt, startButton);
+        
+        Scene midScene = new Scene(midLayout, SIZE, SIZE, DUKE_BLUE);
+        midScene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.SPACE) {
+                loadNewScene(lvl);
+                animation.play();
+            }
+        });
+        
+        return midScene;
+    }
     // helper methods
 
     // initialize game objects
@@ -501,7 +536,6 @@ public class Main extends Application {
     // check to see if th ball has collided with any tiles
     public static Tile checkTileCollisions(Bouncer ball){
         for (Tile tile : tiles){
-            // System.out.println(tile.getHealth());
             // get contact side (if any)
             int contactSide = tileCollideDetect(ball.bouncer, tile.getTile());
 
@@ -527,7 +561,8 @@ public class Main extends Application {
     // check to see if the tiles are all killed
     public static void checkWin() {
         if (tiles.isEmpty() && currLevel < 3){
-            loadNewScene(++currLevel);
+            System.out.println("Tesrt");
+            stage.setScene(midLevelSplash(++currLevel));
             score += 20;
         } else if (tiles.isEmpty() && currLevel >= 3) {
             animation.stop();
