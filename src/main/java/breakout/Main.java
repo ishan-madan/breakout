@@ -242,25 +242,51 @@ public class Main extends Application {
 
     // tile class
     static class Tile {
-        public Rectangle tile;
-        public char powerType;
+        Rectangle tile;
+        char powerType;
         int health;
 
         public Tile(int x, int y, char powerType){
             this.tile = new Rectangle(x, y, 40, 20);
             this.powerType = powerType;
+            this.health = (Character.isLetter(powerType)) ? 1 : Character.getNumericValue(powerType);
             setColor();
+        }
+
+        // get methods
+        public Rectangle getTile() {
+            return tile;
+        }
+
+        public char getPowerType() {
+            return powerType;
+        }
+
+        public int getHealth() {
+            return health;
         }
         
         public void setColor(){
             if(powerType == '1'){
-                tile.setFill(Color.BLACK);;
+                tile.setFill(Color.BLACK);
             } else if (powerType == 'x'){
                 tile.setFill(Color.LIMEGREEN);
             } else if (powerType == 'y'){
                 tile.setFill(Color.YELLOW);
             } else if (powerType == 'z'){
                 tile.setFill(Color.PALETURQUOISE);
+            } else {
+                tile.setFill(Color.HOTPINK);
+            }
+        }
+
+        public void damage() {
+            if (--health == 0){
+                // kill tile
+                tiles.remove(this);
+                root.getChildren().remove(this.tile);
+            } else if (health == 1){
+                tile.setFill(Color.BLACK);
             }
         }
     }
@@ -436,23 +462,25 @@ public class Main extends Application {
     // check to see if th ball has collided with any tiles
     public static Tile checkTileCollisions(Bouncer ball){
         for (Tile tile : tiles){
+            System.out.println(tile.getHealth());
             // get contact side (if any)
-            int contactSide = tileCollideDetect(ball.bouncer, tile.tile);
+            int contactSide = tileCollideDetect(ball.bouncer, tile.getTile());
 
             if (contactSide != 0){
-                // turn on powerup
-                switch (tile.powerType) {
-                    case 'x': {addBall(ball); break;}
-                    case 'y': {padExt(); break;}
-                    case 'z': {speedUpBall(); break;}
+                // turn on powerup if broken block
+                if (tile.getHealth() == '1'){
+                    switch (tile.getPowerType()) {
+                        case 'x': {addBall(ball); break;}
+                        case 'y': {padExt(); break;}
+                        case 'z': {speedUpBall(); break;}
+                    }
+
+                    // increase score based on if it was a powerup tile
+                    score += (tile.powerType != '1') ? 10 : 5;
                 }
 
-                // increase score based on if it was a powerup tile
-                score += (tile.powerType != '1') ? 10 : 5;
-
-                // kill tile
-                tiles.remove(tile);
-                root.getChildren().remove(tile.tile);
+                // damage tile
+                tile.damage();
 
                 // bounce off side depending on side of tile that is hit
                 if (contactSide == 1){
@@ -528,7 +556,7 @@ public class Main extends Application {
         // Load new tiles
         tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
         for (Tile tile : tiles) {
-            root.getChildren().add(tile.tile);
+            root.getChildren().add(tile.getTile());
         }
 
         // Create a new scene and set it on the stage
