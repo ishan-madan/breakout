@@ -80,6 +80,7 @@ public class Main extends Application {
             this.bouncer = bouncer;
             this.xDirection = xDirection / hyp;
             this.yDirection = -1 / hyp;
+            this.bouncer.setFill(Color.LIGHTSTEELBLUE);
         }
 
         // get methods
@@ -446,7 +447,6 @@ public class Main extends Application {
         if (balls == null || balls.size() == 0) {
             balls.add(new Bouncer(new Circle(SIZE/2, PAD_START_Y - 10 - RADIUS, RADIUS), 
                               Math.random() * 2 - 1, Math.random() * 2 - 1));
-            balls.get(0).bouncer.setFill(Color.LIGHTSTEELBLUE);
         }
         if (pad == null) pad = new Pad();
         if (tiles == null) tiles = new ArrayList<>();
@@ -595,7 +595,7 @@ public class Main extends Application {
         // reset keydown bools
         leftKey = false;
         rightKey = false;
-        
+
         // Initialize game objects if they don't exist
         initializeGameObjects();
         
