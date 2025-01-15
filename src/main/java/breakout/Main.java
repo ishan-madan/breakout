@@ -269,24 +269,63 @@ public class Main extends Application {
         public void setColor(){
             if(powerType == '1'){
                 tile.setFill(Color.BLACK);
-            } else if (powerType == 'x'){
+            } else if (powerType == 'a'){
                 tile.setFill(Color.LIMEGREEN);
-            } else if (powerType == 'y'){
+            } else if (powerType == 'p'){
                 tile.setFill(Color.YELLOW);
-            } else if (powerType == 'z'){
+            } else if (powerType == 's'){
                 tile.setFill(Color.PALETURQUOISE);
+            } else if (powerType == 'e'){
+                tile.setFill(Color.ORANGE);
             } else {
                 tile.setFill(Color.HOTPINK);
             }
         }
 
-        public void damage() {
+        public void damage(Bouncer ball) {
             if (--health == 0){
+                // set powerup
+                switch (powerType) {
+                    case 'a': {addBall(ball); break;}
+                    case 'p': {padExt(); break;}
+                    case 's': {speedUpBall(); break;}
+                    case 'e': {explode(tile.getX(), tile.getY(), ball); break;}
+                }
+
                 // kill tile
                 tiles.remove(this);
                 root.getChildren().remove(this.tile);
-            } else if (health == 1){
+
+                // modify score
+                score += (powerType != '1') ? 10 : 5;
+            } 
+            else if (health == 1){
                 tile.setFill(Color.BLACK);
+            }
+        }
+
+        void explode(double x, double y, Bouncer ball){
+            // MAKE THIS WORK
+            int idx = 0;
+
+            while (idx < tiles.size()){
+                Tile tileToCheck = tiles.get(idx);
+                double xDiff = Math.abs(tileToCheck.getTile().getX() - this.getTile().getX());
+                double yDiff = Math.abs(tileToCheck.getTile().getY() - this.getTile().getY());
+
+                // damage the tile if it is in the exploding zone and it isnt the exploding tile itself
+                if (xDiff <= 40.0 && yDiff <= 20.0 && tileToCheck != this){
+                    tileToCheck.damage(ball);
+
+                    // incrememnt forward if the tile didnt die
+                    if (tileToCheck.getHealth() != 0){
+                        idx++;
+                    }
+                } 
+                // increment if not in exploding zone
+                else {
+                    idx++;
+                }
             }
         }
     }
@@ -462,25 +501,13 @@ public class Main extends Application {
     // check to see if th ball has collided with any tiles
     public static Tile checkTileCollisions(Bouncer ball){
         for (Tile tile : tiles){
-            System.out.println(tile.getHealth());
+            // System.out.println(tile.getHealth());
             // get contact side (if any)
             int contactSide = tileCollideDetect(ball.bouncer, tile.getTile());
 
             if (contactSide != 0){
-                // turn on powerup if broken block
-                if (tile.getHealth() == '1'){
-                    switch (tile.getPowerType()) {
-                        case 'x': {addBall(ball); break;}
-                        case 'y': {padExt(); break;}
-                        case 'z': {speedUpBall(); break;}
-                    }
-
-                    // increase score based on if it was a powerup tile
-                    score += (tile.powerType != '1') ? 10 : 5;
-                }
-
                 // damage tile
-                tile.damage();
+                tile.damage(ball);
 
                 // bounce off side depending on side of tile that is hit
                 if (contactSide == 1){
