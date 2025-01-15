@@ -96,7 +96,7 @@ public class Main extends Application {
         }
 
         // set methods
-        public void sexXDir(double val) {
+        public void setXDir(double val) {
             xDirection = val;
         }
 
@@ -147,6 +147,65 @@ public class Main extends Application {
         public void updatePos() {
             bouncer.setCenterX(bouncer.getCenterX() + xDirection * BALL_SPEED);
             bouncer.setCenterY(bouncer.getCenterY() + yDirection * BALL_SPEED);
+        }
+
+        // edge detection and bounce
+        void edgeDetection(){
+            // check left edge
+            if (bouncer.getCenterX() <= bouncer.getRadius()){
+                reverseXDirection();
+            }
+            // check right edge
+            if (bouncer.getCenterX() >= SIZE - bouncer.getRadius()){
+                reverseXDirection();
+            }
+            // check top edge
+            if (bouncer.getCenterY() <= bouncer.getRadius()){
+                reverseYDirection();
+            }
+            // check bottom edge
+            if (bouncer.getCenterY() >= SIZE - bouncer.getRadius()){
+                if (balls.size() <= 1){
+                    reset(false);
+                    pad.reset();
+                    score -= 10;
+                } else {
+                    root.getChildren().remove(bouncer);
+                }
+            }
+        }
+
+        // pad collision detection
+        void positionalBounce() { 
+            // grab circle and rectangle properties of the ball and pad
+            Circle ballObj = bouncer;
+            Rectangle padObj = pad.pad;
+
+            // only bounce if the ball is moving downwards
+            if (yDirection > 0){
+                // check if the ball hits the left side of the pad
+                if (padDetection(ballObj, padObj, 1)){
+                    dirBounce(-1);
+                }
+
+                // check if the ball hits the middle side of the pad
+                if (padDetection(ballObj, padObj, 2)){
+                    dirBounce(0);
+                }
+
+                // check if the ball hits the right side of the pad
+                if (padDetection(ballObj, padObj, 3)){
+                    dirBounce(1);
+                }
+            }
+        }
+
+        // TODO: modify this so that it changes the angle of bounce depending on how far out you hit the pad
+        // general method to detect a positional bounce
+        boolean padDetection(Circle ballObj, Rectangle padObj, int position){
+            return (ballObj.getCenterX() > padObj.getX() + (position - 1) * padObj.getWidth() / 3
+                    && ballObj.getCenterX() <= padObj.getX() + position*padObj.getWidth() / 3 
+                    && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
         }
     }
 
@@ -271,7 +330,6 @@ public class Main extends Application {
         return new Scene(endLayout, SIZE, SIZE, DUKE_BLUE);
     }
 
-
     // helper methods
 
     // initialize game objects
@@ -286,66 +344,6 @@ public class Main extends Application {
         }
         if (pad == null) pad = new Pad();
         if (tiles == null) tiles = new ArrayList<>();
-    }
-
-    // edge detection and bounce
-    void edgeDetection(Bouncer ball){
-        // check left edge
-        if (ball.bouncer.getCenterX() <= ball.bouncer.getRadius()){
-            ball.reverseXDirection();
-        }
-        // check right edge
-        if (ball.bouncer.getCenterX() >= SIZE - ball.bouncer.getRadius()){
-            ball.reverseXDirection();
-        }
-        // check top edge
-        if (ball.bouncer.getCenterY() <= ball.bouncer.getRadius()){
-            ball.reverseYDirection();
-        }
-        // check bottom edge
-        if (ball.bouncer.getCenterY() >= SIZE - ball.bouncer.getRadius()){
-            if (balls.size() <= 1){
-                ball.reset(false);
-                pad.reset();
-                score -= 10;
-            } else {
-                balls.remove(ball);
-                root.getChildren().remove(ball.bouncer);
-            }
-        }
-    }
-
-    // pad collision detection
-    void padDetection(Bouncer ball) { 
-        // grab circle and rectangle properties of the ball and pad
-        Circle ballObj = ball.bouncer;
-        Rectangle padObj = pad.pad;
-
-        // only bounce if the ball is moving downwards
-        if (ball.yDirection > 0){
-            // check if the ball hits the left side of the pad
-            if (positionalBounce(ballObj, padObj, 1)){
-                ball.dirBounce(-1);
-            }
-
-            // check if the ball hits the middle side of the pad
-            if (positionalBounce(ballObj, padObj, 2)){
-                ball.dirBounce(0);
-            }
-
-            // check if the ball hits the right side of the pad
-            if (positionalBounce(ballObj, padObj, 3)){
-                ball.dirBounce(1);
-            }
-        }
-    }
-
-    // TODO: modify this so that it changes the angle of bounce depending on how far out you hit the pad
-    // general method to detect a positional bounce
-    boolean positionalBounce(Circle ballObj, Rectangle padObj, int position){
-        return (ballObj.getCenterX() > padObj.getX() + (position - 1) * padObj.getWidth() / 3
-                && ballObj.getCenterX() <= padObj.getX() + position*padObj.getWidth() / 3 
-                && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
     }
 
     // setup tiles on game
@@ -621,12 +619,12 @@ public class Main extends Application {
 
         for (Bouncer ball : balls){
             ball.updatePos();
-            edgeDetection(ball);
+            ball.edgeDetection();
             // if a ball gets removed, then brek out of loop
             if (balls.size() != numOfballs){
                 break;
             }
-            padDetection(ball);
+            ball.positionalBounce();
             checkTileCollisions(ball);
         }
 
