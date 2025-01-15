@@ -154,14 +154,20 @@ public class Main extends Application {
             // check left edge
             if (bouncer.getCenterX() <= bouncer.getRadius()){
                 reverseXDirection();
+                // prevent ininite edge bounce glitch
+                bouncer.setCenterX(.001 + RADIUS);
             }
             // check right edge
             if (bouncer.getCenterX() >= SIZE - bouncer.getRadius()){
                 reverseXDirection();
+                // prevent ininite edge bounce glitch
+                bouncer.setCenterX(SIZE - RADIUS - .001);
             }
             // check top edge
             if (bouncer.getCenterY() <= bouncer.getRadius()){
                 reverseYDirection();
+                // prevent ininite edge bounce glitch
+                bouncer.setCenterY(.001 + RADIUS);
             }
             // check bottom edge
             if (bouncer.getCenterY() >= SIZE - bouncer.getRadius()){
