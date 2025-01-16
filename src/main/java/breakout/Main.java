@@ -209,7 +209,6 @@ public class Main extends Application {
             }
         }
 
-        // TODO: modify this so that it changes the angle of bounce depending on how far out you hit the pad
         // general method to detect a positional bounce
         boolean padDetection(Circle ballObj, Rectangle padObj, int position){
             return (ballObj.getCenterX() > padObj.getX() + (position - 1) * padObj.getWidth() / 3
@@ -277,16 +276,22 @@ public class Main extends Application {
         
         public void setColor(){
             if(powerType == '1'){
+                // standard tile
                 tile.setFill(Color.BLACK);
             } else if (powerType == 'a'){
+                // add a ball
                 tile.setFill(Color.LIMEGREEN);
             } else if (powerType == 'p'){
+                // pad extension for 5 seconds
                 tile.setFill(Color.YELLOW);
             } else if (powerType == 's'){
+                // speed ball up for 5 seconds
                 tile.setFill(Color.PALETURQUOISE);
             } else if (powerType == 'e'){
+                // explode
                 tile.setFill(Color.ORANGE);
             } else {
+                // multi hit block
                 tile.setFill(Color.HOTPINK);
             }
         }
@@ -310,6 +315,8 @@ public class Main extends Application {
             } 
             else if (health == 1){
                 tile.setFill(Color.BLACK);
+            } else if (!Character.isAlphabetic(powerType)){
+                score += 5;
             }
         }
 
