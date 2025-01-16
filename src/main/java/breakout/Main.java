@@ -14,6 +14,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -42,6 +43,9 @@ public class Main extends Application {
     public static final int PAD_START_Y = (int) (SIZE * 0.9);
     public static final int BALL_START_Y = PAD_START_Y - RADIUS;
     public static final int PAD_SPEED = 3;
+    public static final int MAX_LEVEL = 3;
+    public static final int LEVEL_PASS_PTS = 20;
+    public static final double REPAUSE_SECOND_DELAY = 1;
 
     // game objects
     static ArrayList<Bouncer> balls = new ArrayList<>();
@@ -54,17 +58,20 @@ public class Main extends Application {
     static Text livesText;
     static Text scoreText;
     static Text levelText;
+    static Pane pauseSplashScreen;
 
     // global vars
     static int lives = 3;
     static int currLevel = 1;
     static int highscore = 0;
     static int score = 0;
-    static int paddleExtensionTime = 0;
-    static int ballSpeedTime = 0;
+    static int paddleExtensionTimer = 0;
+    static int ballSpeedTimer = 0;
     static int BALL_SPEED = 4;
     static boolean rightKey = false;
     static boolean leftKey = false;
+    static boolean paused = false;
+    static int rePauseTimer = 0;
 
 
     // classes
@@ -498,6 +505,8 @@ public class Main extends Application {
             
             Text title = UIElements.createText("BREAKOUT", 48, DUKE_BLUE);
             Text instructions = UIElements.createText("Use LEFT/RIGHT or A/D to move the paddle", 15, DUKE_BLUE);
+            Text blockInfo1 = UIElements.createText("Black = Normal, Pink = Multi-hit, Orange = Explode", 12, Color.PURPLE);
+            Text blockInfo2 = UIElements.createText("Yellow = Pad Extension, Green = Add Ball, Blue = Speed Up Ball", 12, Color.PURPLE);
             Text hs = UIElements.createText("Highscore: " + highscore, 15, DUKE_BLUE);
             
             Runnable startGameAction = () -> {
@@ -505,7 +514,7 @@ public class Main extends Application {
             };
             Button startButton = UIElements.createButton("Start Game", startGameAction);
             
-            startLayout.getChildren().addAll(title, instructions, hs, startButton);
+            startLayout.getChildren().addAll(title, instructions, blockInfo1, blockInfo2, hs, startButton);
             
             Scene startScene = UIElements.createGameScene(startLayout);
             startScene.setOnKeyPressed(e -> {
@@ -568,6 +577,27 @@ public class Main extends Application {
             return midScene;
         }
         
+        public static Pane createPauseSplash() {
+            Pane splashScreen = new Pane();
+            splashScreen.setPrefSize(SIZE, SIZE);
+            splashScreen.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);"); // Semi-transparent black background
+        
+            // Add a pause text
+            Text splashText = UIElements.createTextPos("PAUSED", 50, Color.WHITE, SIZE / 2 - 80, SIZE / 2);
+            splashScreen.getChildren().add(splashText);
+        
+            splashScreen.setVisible(false);
+        
+            return splashScreen;
+        }
+
+        public static void togglePauseSplash() {
+            if (pauseSplashScreen.isVisible()) {
+                pauseSplashScreen.setVisible(false);
+            } else {
+                pauseSplashScreen.setVisible(true);
+            }
+        }
     }
     
     static class PowerUpManager {
@@ -595,28 +625,40 @@ public class Main extends Application {
                 pad.pad.setWidth((currLevel != 1) ? 75 : 150);
                 pad.pad.setX(pad.pad.getX() - 25);
             }
-            paddleExtensionTime = 300;
+            paddleExtensionTimer = 300;
         }
 
-        public static void padWidthReset() {
+        static void padWidthReset() {
             pad.pad.setWidth((currLevel != 1) ? 50 : 100);
         }
 
         public static void speedUpBall(){
             BALL_SPEED *= 1.5;
-            ballSpeedTime = 300;
+            ballSpeedTimer = 300;
         }
 
-        public static void resetBallSpeed() {
+        static void resetBallSpeed() {
             BALL_SPEED = 4;
         }
 
+        public static void manageActivePowerups() {
+            if (paddleExtensionTimer == 0){
+                padWidthReset();
+            }
+    
+            if (ballSpeedTimer == 0){
+                resetBallSpeed();
+            }
+        }
+
+        public static void decreasePowerupTimers() {
+            paddleExtensionTimer--;
+            ballSpeedTimer--;
+            rePauseTimer--;
+        }
     }
 
     static class GameStateManager {
-        static final int MAX_LEVEL = 3;
-        static final int LEVEL_PASS_PTS = 20;
-
         public static void checkState() {
             if (isGameOver()){
                 handleGameOver();
@@ -649,6 +691,8 @@ public class Main extends Application {
         }
     }
 
+    
+    
     // helper methods
     // initialize game objects
     public static void initializeGameObjects() {
@@ -695,7 +739,7 @@ public class Main extends Application {
     }
 
     // reset the game
-    public static void resetGame(){
+    static void resetGame(){
         while (balls.size() > 1) {
             root.getChildren().remove(balls.remove(0).bouncer);
 
@@ -704,8 +748,23 @@ public class Main extends Application {
         pad.reset();
     }
 
+    // pause the game
+    static void pauseGame() {
+        if (paused) {
+            animation.play();
+            paused = false;
+            rePauseTimer = (int) (REPAUSE_SECOND_DELAY * 60);
+            SplashScreenManager.togglePauseSplash();
+        } 
+        else if (rePauseTimer <= 0) {
+            animation.pause();
+            paused = true;
+            SplashScreenManager.togglePauseSplash();
+        }
+    }
+
     // set new scene
-    public static void loadNewScene(int lvlNum) {
+    static void loadNewScene(int lvlNum) {
         // reset keydown bools
         leftKey = false;
         rightKey = false;
@@ -734,16 +793,21 @@ public class Main extends Application {
         livesText = UIElements.createTextPos("Lives: " + lives, 16, Color.WHITE, 10, 20);
         scoreText = UIElements.createTextPos("Score: " + score, 16, Color.WHITE, SIZE - 80, 20);
         levelText = UIElements.createTextPos("Level: " + currLevel, 16, Color.WHITE, SIZE/2 - 20, 20);
+        pauseSplashScreen = SplashScreenManager.createPauseSplash();
+
 
 
         // Add pad and ball to the new root
-        root.getChildren().addAll(pad.pad, balls.get(0).bouncer, livesText, levelText, scoreText);
+        root.getChildren().addAll( pad.pad, balls.get(0).bouncer, livesText, levelText, scoreText);
 
         // Load new tiles
         tiles = setupTiles(new File("/Users/ishanmadan/Desktop/CS308/breakout_im121/src/main/resources/lvl" + lvlNum + ".txt"));
         for (Tile tile : tiles) {
             root.getChildren().add(tile.getTile());
         }
+
+        // initialize pause splash screen on top of everythingg
+        root.getChildren().add(pauseSplashScreen);
 
         // Create a new scene and set it on the stage
         myScene = UIElements.createGameScene(root);
@@ -804,17 +868,9 @@ public class Main extends Application {
             CollisionManager.checkTileCollisions(ball);
         }
 
-        if (paddleExtensionTime == 0){
-            PowerUpManager.padWidthReset();
-        } else {
-            paddleExtensionTime--;
-        }
+        PowerUpManager.manageActivePowerups();
+        PowerUpManager.decreasePowerupTimers();
 
-        if (ballSpeedTime == 0){
-            PowerUpManager.resetBallSpeed();
-        } else {
-            ballSpeedTime--;
-        }
         
         pad.updatePos();
         UIElements.updateUI();
@@ -822,24 +878,29 @@ public class Main extends Application {
     }
 
     public static void handleKeyInput (KeyCode code) {
-        switch (code) {
-            case RIGHT -> rightKey = true;
-            case LEFT -> leftKey = true;
-            case A -> leftKey = true;
-            case D -> rightKey = true;
-            case R -> resetGame();
-            case L -> lives++;
-            case M -> lives--;
-            case B -> PowerUpManager.removeRandomBlock();
-            case X -> {
-                for (Bouncer ball : balls){
-                    ball.reverseXDirection();
+        if (!paused) {
+            switch (code) {
+                case RIGHT -> rightKey = true;
+                case LEFT -> leftKey = true;
+                case A -> leftKey = true;
+                case D -> rightKey = true;
+                case R -> resetGame();
+                case L -> lives++;
+                case M -> lives--;
+                case B -> PowerUpManager.removeRandomBlock();
+                case X -> {
+                    for (Bouncer ball : balls){
+                        ball.reverseXDirection();
+                    }
                 }
+                case E -> PowerUpManager.addBall(balls.get(0));
+                case W -> PowerUpManager.padExt();
+                case Q -> PowerUpManager.speedUpBall();
             }
-            case E -> PowerUpManager.addBall(balls.get(0));
-            case W -> PowerUpManager.padExt();
-            case Q -> PowerUpManager.speedUpBall();
-            
+        }
+        
+        switch(code) {
+            case P -> pauseGame();
         }
     }
 
