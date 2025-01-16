@@ -504,7 +504,7 @@ public class Main extends Application {
             VBox startLayout = UIElements.createBaseLayout();
             
             Text title = UIElements.createText("BREAKOUT", 48, DUKE_BLUE);
-            Text instructions = UIElements.createText("Use LEFT/RIGHT or A/D to move the paddle", 15, DUKE_BLUE);
+            Text instructions = UIElements.createText("Use arrows or A/D to move the paddle. P to pause", 15, DUKE_BLUE);
             Text blockInfo1 = UIElements.createText("Black = Normal, Pink = Multi-hit, Orange = Explode", 12, Color.PURPLE);
             Text blockInfo2 = UIElements.createText("Yellow = Pad Extension, Green = Add Ball, Blue = Speed Up Ball", 12, Color.PURPLE);
             Text hs = UIElements.createText("Highscore: " + highscore, 15, DUKE_BLUE);
@@ -822,6 +822,22 @@ public class Main extends Application {
         animation.play();
     }
     
+    // all ball movemnet and collision code for step
+    void ballMovement() {
+        int numOfballs = balls.size();
+
+        for (Bouncer ball : balls){
+            ball.updatePos();
+            ball.edgeDetection();
+            // if a ball gets removed, then break out of loop
+            if (balls.size() != numOfballs){
+                break;
+            }
+            ball.detectPad();
+            CollisionManager.checkTileCollisions(ball);
+        }
+    }
+
     @Override
     public void start(Stage tempStage) {
         stage = tempStage;
@@ -855,23 +871,11 @@ public class Main extends Application {
     }
 
     private void step (double elapsedTime) {
-        int numOfballs = balls.size();
-
-        for (Bouncer ball : balls){
-            ball.updatePos();
-            ball.edgeDetection();
-            // if a ball gets removed, then brek out of loop
-            if (balls.size() != numOfballs){
-                break;
-            }
-            ball.detectPad();
-            CollisionManager.checkTileCollisions(ball);
-        }
+        ballMovement();
 
         PowerUpManager.manageActivePowerups();
         PowerUpManager.decreasePowerupTimers();
 
-        
         pad.updatePos();
         UIElements.updateUI();
         GameStateManager.checkState();
