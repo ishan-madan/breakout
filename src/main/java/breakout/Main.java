@@ -133,6 +133,7 @@ public class Main extends Application {
             if (!manualReset){
                 lives--;
             }
+
             // reset location
             bouncer.setCenterX(SIZE/2);
             bouncer.setCenterY(BALL_START_Y);
@@ -438,6 +439,7 @@ public class Main extends Application {
         
         return midScene;
     }
+    
     // helper methods
 
     // initialize game objects
@@ -589,6 +591,16 @@ public class Main extends Application {
     public static void updateUI() {
         livesText.setText("Lives: " + lives);
         scoreText.setText("Score: " + score);
+    }
+    
+    // reset the game
+    public static void resetGame(){
+        while (balls.size() > 1) {
+            root.getChildren().remove(balls.remove(0).bouncer);
+
+        }
+        balls.get(0).reset(true); 
+        pad.reset();
     }
     
     // set new scene
@@ -753,13 +765,7 @@ public class Main extends Application {
             case LEFT -> leftKey = true;
             case A -> leftKey = true;
             case D -> rightKey = true;
-            case R -> {
-                while (balls.size() > 1) {
-                    root.getChildren().remove(balls.remove(0).bouncer);
-
-                }
-                balls.get(0).reset(true); 
-                pad.reset();}
+            case R -> resetGame();
             case L -> lives++;
             case M -> lives--;
             case B -> removeRandomBlock();
@@ -771,7 +777,7 @@ public class Main extends Application {
             case E -> addBall(balls.get(0));
             case W -> padExt();
             case Q -> speedUpBall();
-            // TODO: create paddle speed powerup
+            
         }
     }
 
@@ -787,3 +793,5 @@ public class Main extends Application {
     public static void main (String[] args) {
         launch(args);
     }
+
+}
