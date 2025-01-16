@@ -654,8 +654,6 @@ public class Main extends Application {
     }
 
     // helper methods
-
-    // initialize
     // initialize game objects
     public static void initializeGameObjects() {
         // Initialize game objects if they don't exist
@@ -669,7 +667,6 @@ public class Main extends Application {
         if (tiles == null) tiles = new ArrayList<>();
     }
 
-    // initialize
     // setup tiles on game
     static ArrayList<Tile> setupTiles(File input) {
         tiles = new ArrayList<>();
@@ -762,7 +759,6 @@ public class Main extends Application {
         stage.setScene(myScene);
         stage.show();
     }
-    
     
     @Override
     public void start(Stage tempStage) {
