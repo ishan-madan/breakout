@@ -69,7 +69,6 @@ public class Main extends Application {
 
 
     // classes
-    // bouncer class
     static class Bouncer {
         Circle bouncer;
         double xDirection;
@@ -223,7 +222,6 @@ public class Main extends Application {
         }
     }
 
-    // pad class
     static class Pad {
         Rectangle pad;
 
@@ -249,12 +247,11 @@ public class Main extends Application {
                 pad.setX(Math.min(pad.getX() + PAD_SPEED, SIZE - 20));
             } 
             if (leftKey){
-                pad.setX(Math.min(pad.getX() - PAD_SPEED, SIZE - 20));
+                pad.setX(Math.max(pad.getX() - PAD_SPEED, 20 - pad.getWidth()));
             }
         }
     }
 
-    // tile class
     static class Tile {
         Rectangle tile;
         char powerType;
@@ -329,9 +326,9 @@ public class Main extends Application {
 
         void activatePowerup(Bouncer ball, char powerType){
             switch (powerType) {
-                case 'a': {addBall(ball); break;}
-                case 'p': {padExt(); break;}
-                case 's': {speedUpBall(); break;}
+                case 'a': {PowerUpManager.addBall(ball); break;}
+                case 'p': {PowerUpManager.padExt(); break;}
+                case 's': {PowerUpManager.speedUpBall(); break;}
                 case 'e': {explode(tile.getX(), tile.getY(), ball); break;}
             }
         }
@@ -381,6 +378,14 @@ public class Main extends Application {
             return text;
         }
 
+        public static Text createTextPos(String content, double fontSize, Color color, double x, double y){
+            Text text = new Text(x, y, content);
+            text.setFont(Font.font(fontSize));
+            text.setFill(color);
+            
+            return text;
+        }
+
         public static Button createButton(String content, Runnable action){
             Button button = new Button(content);
             button.setOnAction(e -> action.run());
@@ -397,88 +402,260 @@ public class Main extends Application {
         public static Scene createGameScene(Parent root) {
             return new Scene(root, SIZE, SIZE, DUKE_BLUE);
         }
-    }
-    // splash screen creation methods
-    public static Scene createStartScreen() {
-        VBox startLayout = UIElements.createBaseLayout();
-        
-        Text title = UIElements.createText("BREAKOUT", 48, DUKE_BLUE);
-        Text instructions = UIElements.createText("Use LEFT/RIGHT or A/D to move the paddle", 15, DUKE_BLUE);
-        Text hs = UIElements.createText("Highscore: " + highscore, 15, DUKE_BLUE);
-        
-        Runnable startGameAction = () -> {
-            loadNewScene(1);
-            animation.play();
-        };
-        Button startButton = UIElements.createButton("Start Game", startGameAction);
-        
-        startLayout.getChildren().addAll(title, instructions, hs, startButton);
-        
-        Scene startScene = UIElements.createGameScene(startLayout);
-        startScene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.SPACE) {
-                startGameAction.run();
-            }
-        });
-        
-        return startScene;
-    }
 
-    public static Scene createEndScreen(boolean won) {
-        VBox endLayout = UIElements.createBaseLayout();
-        
-        Text endText = UIElements.createText((won ? "YOU WIN!" : "GAME OVER"), 48, DUKE_BLUE);
-        Text scoreText = UIElements.createText((highscore < score) ? "New Highscore: " + score : "Score: " + score, 15, DUKE_BLUE);
-        Text hs = UIElements.createText((highscore < score) ? "CONGRATS!" : "Highscore: " + highscore, 15, DUKE_BLUE);
-        
-        Runnable restartGameAction = () -> {
-            currLevel = 1;
-            lives = 3;
-            highscore = Math.max(highscore, score);
-            score = 0;
-            loadNewScene(1);
-            animation.play();
-        };
-
-        Button restartButton = UIElements.createButton("Restart", restartGameAction);
-        
-        Button quitButton = UIElements.createButton("Quit", () -> stage.close());
-        
-        endLayout.getChildren().addAll(endText, restartButton, scoreText, hs, quitButton);
-        
-        return UIElements.createGameScene(endLayout);
-    }
-
-    public static Scene midLevelSplash(int lvl) {
-        animation.pause();
-        VBox midLayout = UIElements.createBaseLayout();
-        
-        Text hs = UIElements.createText("Level " + (lvl-1) + " Complete!", 25, DUKE_BLUE);
-        Text scoreTxt = UIElements.createText("Score: " + score, 25, DUKE_BLUE);
-        Text livesTxt = UIElements.createText("You have " + lives + " lives remaining!", 15, DUKE_BLUE);
-        
-        Runnable nextLevelAction = () -> {
-            loadNewScene(lvl);
-            animation.play();
-        };
-
-        Button startButton = UIElements.createButton("Next Level", nextLevelAction);
-        
-        midLayout.getChildren().addAll(hs, scoreTxt, livesTxt, startButton);
-        
-        Scene midScene = UIElements.createGameScene(midLayout);
-
-        midScene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.SPACE) {
-                nextLevelAction.run();
-            }
-        });
-        
-        return midScene;
+        // update the UI elements
+        public static void updateUI() {
+            livesText.setText("Lives: " + lives);
+            scoreText.setText("Score: " + score);
+        }
     }
     
+    static class CollisionManager {
+        // collsiion detect between ball and tile
+        static int tileCollideDetect(Circle circle, Rectangle rectangle) {
+            // get circle center coordinates
+            double circleX = circle.getCenterX();
+            double circleY = circle.getCenterY();
+            double radius = circle.getRadius();
+            
+            // get rectangle bounds
+            double rectX = rectangle.getX();
+            double rectY = rectangle.getY();
+            double rectWidth = rectangle.getWidth();
+            double rectHeight = rectangle.getHeight();
+            
+            // find closest point on rectangle to circle center
+            double closestX = Math.max(rectX, Math.min(circleX, rectX + rectWidth));
+            double closestY = Math.max(rectY, Math.min(circleY, rectY + rectHeight));
+            
+            // calc distance between closest point and circle center
+            double distanceX = circleX - closestX;
+            double distanceY = circleY - closestY;
+            
+            // check if there's a collision at all
+            double distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
+            if (distanceSquared > (radius * radius)) {
+                return 0; // No collision
+            }
+            
+            // determine which side was hit
+            
+            // get the center of the rectangle
+            double rectCenterX = rectX + rectWidth / 2;
+            double rectCenterY = rectY + rectHeight / 2;
+            
+            // calc the angle between circle center and rectangle center
+            double angle = Math.toDegrees(Math.atan2(circleY - rectCenterY, circleX - rectCenterX));
+            
+            // normalize angle to 0-360 range
+            if (angle < 0) {
+                angle += 360;
+            }
+            
+            // calc the angle threshold based on rectangle dimensions
+            double angleThreshold = Math.toDegrees(Math.atan2(rectHeight, rectWidth));
+            
+            // determine which side was hit based on the angle
+            if (angle >= 360 - angleThreshold || angle < angleThreshold) {
+                return 2; // R side
+            } else if (angle >= angleThreshold && angle < 180 - angleThreshold) {
+                return 1; // T side
+            } else if (angle >= 180 - angleThreshold && angle < 180 + angleThreshold) {
+                return 2; // L side
+            } else {
+                return 1; // B side
+            }
+        }
+
+        // check to see if th ball has collided with any tiles
+        public static Tile checkTileCollisions(Bouncer ball){
+            for (Tile tile : tiles){
+                // get contact side (if any)
+                int contactSide = tileCollideDetect(ball.bouncer, tile.getTile());
+
+                if (contactSide != 0){
+                    // damage tile
+                    tile.damage(ball);
+
+                    // bounce off side depending on side of tile that is hit
+                    if (contactSide == 1){
+                        ball.reverseYDirection();
+                    } else if (contactSide == 2){
+                        ball.reverseXDirection();
+                    }
+
+                    // kill loop if we collide to prevent concurrent modification
+                    break;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    static class SplashScreenManager {
+        public static Scene createStartScreen() {
+            VBox startLayout = UIElements.createBaseLayout();
+            
+            Text title = UIElements.createText("BREAKOUT", 48, DUKE_BLUE);
+            Text instructions = UIElements.createText("Use LEFT/RIGHT or A/D to move the paddle", 15, DUKE_BLUE);
+            Text hs = UIElements.createText("Highscore: " + highscore, 15, DUKE_BLUE);
+            
+            Runnable startGameAction = () -> {
+                loadNewScene(1);
+                animation.play();
+            };
+            Button startButton = UIElements.createButton("Start Game", startGameAction);
+            
+            startLayout.getChildren().addAll(title, instructions, hs, startButton);
+            
+            Scene startScene = UIElements.createGameScene(startLayout);
+            startScene.setOnKeyPressed(e -> {
+                if (e.getCode() == KeyCode.SPACE) {
+                    startGameAction.run();
+                }
+            });
+            
+            return startScene;
+        }
+    
+        public static Scene createEndScreen(boolean won) {
+            VBox endLayout = UIElements.createBaseLayout();
+            
+            Text endText = UIElements.createText((won ? "YOU WIN!" : "GAME OVER"), 48, DUKE_BLUE);
+            Text scoreText = UIElements.createText((highscore < score) ? "New Highscore: " + score : "Score: " + score, 15, DUKE_BLUE);
+            Text hs = UIElements.createText((highscore < score) ? "CONGRATS!" : "Highscore: " + highscore, 15, DUKE_BLUE);
+            
+            Runnable restartGameAction = () -> {
+                currLevel = 1;
+                lives = 3;
+                highscore = Math.max(highscore, score);
+                score = 0;
+                loadNewScene(1);
+                animation.play();
+            };
+    
+            Button restartButton = UIElements.createButton("Restart", restartGameAction);
+            
+            Button quitButton = UIElements.createButton("Quit", () -> stage.close());
+            
+            endLayout.getChildren().addAll(endText, restartButton, scoreText, hs, quitButton);
+            
+            return UIElements.createGameScene(endLayout);
+        }
+    
+        public static Scene midLevelSplash(int lvl) {
+            animation.pause();
+            VBox midLayout = UIElements.createBaseLayout();
+            
+            Text hs = UIElements.createText("Level " + (lvl-1) + " Complete!", 25, DUKE_BLUE);
+            Text scoreTxt = UIElements.createText("Score: " + score, 25, DUKE_BLUE);
+            Text livesTxt = UIElements.createText("You have " + lives + " lives remaining!", 15, DUKE_BLUE);
+            
+            Runnable nextLevelAction = () -> {
+                loadNewScene(lvl);
+                animation.play();
+            };
+    
+            Button startButton = UIElements.createButton("Next Level", nextLevelAction);
+            
+            midLayout.getChildren().addAll(hs, scoreTxt, livesTxt, startButton);
+            
+            Scene midScene = UIElements.createGameScene(midLayout);
+    
+            midScene.setOnKeyPressed(e -> {
+                if (e.getCode() == KeyCode.SPACE) {
+                    nextLevelAction.run();
+                }
+            });
+            
+            return midScene;
+        }
+        
+    }
+    
+    static class PowerUpManager {
+        // remove a random block on the screen
+        public static void removeRandomBlock(){
+            if (!tiles.isEmpty()){
+                Tile randTile = tiles.get((int) Math.floor(Math.random() * tiles.size()));
+                root.getChildren().remove(randTile.tile);
+                tiles.remove(randTile);
+            }
+        }
+
+        // add a new ball powerup
+        public static void addBall(Bouncer ball){
+            balls.add(new Bouncer(new Circle(ball.bouncer.getCenterX(), ball.bouncer.getCenterY(), RADIUS), 
+            Math.random() * 2 - 1, Math.random() * 2 - 1));
+            balls.get(balls.size() - 1).bouncer.setFill(Color.LIGHTSTEELBLUE);
+
+            root.getChildren().add(balls.get(balls.size() - 1).bouncer);
+        }
+
+        // make paddle wider powerup
+        public static void padExt(){
+            if (pad.pad.getWidth() != 150){
+                pad.pad.setWidth((currLevel != 1) ? 75 : 150);
+                pad.pad.setX(pad.pad.getX() - 25);
+            }
+            paddleExtensionTime = 300;
+        }
+
+        public static void padWidthReset() {
+            pad.pad.setWidth((currLevel != 1) ? 50 : 100);
+        }
+
+        public static void speedUpBall(){
+            BALL_SPEED *= 1.5;
+            ballSpeedTime = 300;
+        }
+
+        public static void resetBallSpeed() {
+            BALL_SPEED = 4;
+        }
+
+    }
+
+    static class GameStateManager {
+        static final int MAX_LEVEL = 3;
+        static final int LEVEL_PASS_PTS = 20;
+
+        public static void checkState() {
+            if (isGameOver()){
+                handleGameOver();
+                return;
+            }
+
+            if (isLevelComplete()){
+                handleLevelComplete();
+            }
+        }
+
+        static boolean isGameOver() {
+            return (lives <= 0 || (tiles.isEmpty() && currLevel >= MAX_LEVEL));
+        }
+
+        static boolean isLevelComplete() {
+            return (tiles.isEmpty() && currLevel < MAX_LEVEL);
+        }
+
+        static void handleGameOver() {
+            animation.stop();
+            boolean winner = (lives > 0);
+            stage.setScene(SplashScreenManager.createEndScreen(winner));
+        }
+        
+        static void handleLevelComplete() {
+            currLevel++;
+            score += LEVEL_PASS_PTS;
+            stage.setScene(SplashScreenManager.midLevelSplash(currLevel));
+        }
+    }
+
     // helper methods
 
+    // initialize
     // initialize game objects
     public static void initializeGameObjects() {
         // Initialize game objects if they don't exist
@@ -492,6 +669,7 @@ public class Main extends Application {
         if (tiles == null) tiles = new ArrayList<>();
     }
 
+    // initialize
     // setup tiles on game
     static ArrayList<Tile> setupTiles(File input) {
         tiles = new ArrayList<>();
@@ -523,113 +701,6 @@ public class Main extends Application {
         return tiles;
     }
 
-    // collsiion detect between ball and tile
-    public static int tileCollideDetect(Circle circle, Rectangle rectangle) {
-        // get circle center coordinates
-        double circleX = circle.getCenterX();
-        double circleY = circle.getCenterY();
-        double radius = circle.getRadius();
-        
-        // get rectangle bounds
-        double rectX = rectangle.getX();
-        double rectY = rectangle.getY();
-        double rectWidth = rectangle.getWidth();
-        double rectHeight = rectangle.getHeight();
-        
-        // find closest point on rectangle to circle center
-        double closestX = Math.max(rectX, Math.min(circleX, rectX + rectWidth));
-        double closestY = Math.max(rectY, Math.min(circleY, rectY + rectHeight));
-        
-        // calc distance between closest point and circle center
-        double distanceX = circleX - closestX;
-        double distanceY = circleY - closestY;
-        
-        // check if there's a collision at all
-        double distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
-        if (distanceSquared > (radius * radius)) {
-            return 0; // No collision
-        }
-        
-        // determine which side was hit
-        
-        // get the center of the rectangle
-        double rectCenterX = rectX + rectWidth / 2;
-        double rectCenterY = rectY + rectHeight / 2;
-        
-        // calc the angle between circle center and rectangle center
-        double angle = Math.toDegrees(Math.atan2(circleY - rectCenterY, circleX - rectCenterX));
-        
-        // normalize angle to 0-360 range
-        if (angle < 0) {
-            angle += 360;
-        }
-        
-        // calc the angle threshold based on rectangle dimensions
-        double angleThreshold = Math.toDegrees(Math.atan2(rectHeight, rectWidth));
-        
-        // determine which side was hit based on the angle
-        if (angle >= 360 - angleThreshold || angle < angleThreshold) {
-            return 2; // R side
-        } else if (angle >= angleThreshold && angle < 180 - angleThreshold) {
-            return 1; // T side
-        } else if (angle >= 180 - angleThreshold && angle < 180 + angleThreshold) {
-            return 2; // L side
-        } else {
-            return 1; // B side
-        }
-    }
-
-    // check to see if th ball has collided with any tiles
-    public static Tile checkTileCollisions(Bouncer ball){
-        for (Tile tile : tiles){
-            // get contact side (if any)
-            int contactSide = tileCollideDetect(ball.bouncer, tile.getTile());
-
-            if (contactSide != 0){
-                // damage tile
-                tile.damage(ball);
-
-                // bounce off side depending on side of tile that is hit
-                if (contactSide == 1){
-                    ball.reverseYDirection();
-                } else if (contactSide == 2){
-                    ball.reverseXDirection();
-                }
-
-                // kill loop if we collide to prevent concurrent modification
-                break;
-            }
-        }
-
-        return null;
-    }
-
-    // check to see if the tiles are all killed
-    public static void checkWin() {
-        if (tiles.isEmpty() && currLevel < 3){
-            System.out.println("Tesrt");
-            stage.setScene(midLevelSplash(++currLevel));
-            score += 20;
-        } else if (tiles.isEmpty() && currLevel >= 3) {
-            animation.stop();
-            stage.setScene(createEndScreen(true));
-        }
-    }
-
-    // check to see if out of lives
-    public static void checkLoss(){
-        if (lives <= 0){
-            animation.stop();
-            stage.setScene(createEndScreen(false));
-        }
-    }
-
-    // update the UI elements
-    public static void updateUI() {
-        livesText.setText("Lives: " + lives);
-        scoreText.setText("Score: " + score);
-    }
-    
     // reset the game
     public static void resetGame(){
         while (balls.size() > 1) {
@@ -667,17 +738,10 @@ public class Main extends Application {
         }
 
         // add UI elements
-        livesText = new Text(10, 20, "Lives: " + lives);
-        livesText.setFill(Color.WHITE);
-        livesText.setFont(Font.font(16));
+        livesText = UIElements.createTextPos("Lives: " + lives, 16, Color.WHITE, 10, 20);
+        scoreText = UIElements.createTextPos("Score: " + score, 16, Color.WHITE, SIZE - 80, 20);
+        levelText = UIElements.createTextPos("Level: " + currLevel, 16, Color.WHITE, SIZE/2 - 20, 20);
 
-        scoreText = new Text(SIZE - 80, 20, "Score: " + score);
-        scoreText.setFill(Color.WHITE);
-        scoreText.setFont(Font.font(16));
-
-        levelText = new Text(SIZE/2 - 20, 20, "Level: " + currLevel);
-        levelText.setFill(Color.WHITE);
-        levelText.setFont(Font.font(16));
 
         // Add pad and ball to the new root
         root.getChildren().addAll(pad.pad, balls.get(0).bouncer, livesText, levelText, scoreText);
@@ -689,7 +753,7 @@ public class Main extends Application {
         }
 
         // Create a new scene and set it on the stage
-        myScene = new Scene(root, SIZE, SIZE, DUKE_BLUE);
+        myScene = UIElements.createGameScene(root);
         
         // Add key handling to the new scene
         myScene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
@@ -699,46 +763,7 @@ public class Main extends Application {
         stage.show();
     }
     
-    // remove a random block on the screen
-    public static void removeRandomBlock(){
-        if (!tiles.isEmpty()){
-            Tile randTile = tiles.get((int) Math.floor(Math.random() * tiles.size()));
-            root.getChildren().remove(randTile.tile);
-            tiles.remove(randTile);
-        }
-    }
-
-    // add a new ball powerup
-    public static void addBall(Bouncer ball){
-        balls.add(new Bouncer(new Circle(ball.bouncer.getCenterX(), ball.bouncer.getCenterY(), RADIUS), 
-        Math.random() * 2 - 1, Math.random() * 2 - 1));
-        balls.get(balls.size() - 1).bouncer.setFill(Color.LIGHTSTEELBLUE);
-
-        root.getChildren().add(balls.get(balls.size() - 1).bouncer);
-    }
-
-    // make paddle wider powerup
-    public static void padExt(){
-        if (pad.pad.getWidth() != 150){
-            pad.pad.setWidth((currLevel != 1) ? 75 : 150);
-            pad.pad.setX(pad.pad.getX() - 25);
-        }
-        paddleExtensionTime = 300;
-    }
-
-    public static void padWidthReset() {
-        pad.pad.setWidth((currLevel != 1) ? 50 : 100);
-    }
-
-    public static void speedUpBall(){
-        BALL_SPEED *= 1.5;
-        ballSpeedTime = 300;
-    }
-
-    public static void resetBallSpeed() {
-        BALL_SPEED = 4;
-    }
-
+    
     @Override
     public void start(Stage tempStage) {
         stage = tempStage;
@@ -750,7 +775,7 @@ public class Main extends Application {
         pad = new Pad();
         
         // Show start screen instead of going directly to the game
-        stage.setScene(createStartScreen());
+        stage.setScene(SplashScreenManager.createStartScreen());
         stage.setTitle(TITLE);
         stage.show();
         
@@ -782,25 +807,24 @@ public class Main extends Application {
                 break;
             }
             ball.detectPad();
-            checkTileCollisions(ball);
+            CollisionManager.checkTileCollisions(ball);
         }
 
         if (paddleExtensionTime == 0){
-            padWidthReset();
+            PowerUpManager.padWidthReset();
         } else {
             paddleExtensionTime--;
         }
 
         if (ballSpeedTime == 0){
-            resetBallSpeed();
+            PowerUpManager.resetBallSpeed();
         } else {
             ballSpeedTime--;
         }
         
         pad.updatePos();
-        updateUI();
-        checkLoss();
-        checkWin();
+        UIElements.updateUI();
+        GameStateManager.checkState();
     }
 
     public static void handleKeyInput (KeyCode code) {
@@ -812,15 +836,15 @@ public class Main extends Application {
             case R -> resetGame();
             case L -> lives++;
             case M -> lives--;
-            case B -> removeRandomBlock();
+            case B -> PowerUpManager.removeRandomBlock();
             case X -> {
                 for (Bouncer ball : balls){
                     ball.reverseXDirection();
                 }
             }
-            case E -> addBall(balls.get(0));
-            case W -> padExt();
-            case Q -> speedUpBall();
+            case E -> PowerUpManager.addBall(balls.get(0));
+            case W -> PowerUpManager.padExt();
+            case Q -> PowerUpManager.speedUpBall();
             
         }
     }
