@@ -105,7 +105,7 @@ public class Main extends Application {
             yDirection = val;
         }
 
-        // other methods
+        // direction reverse methods
         public void reverseXDirection(){
             xDirection *= -1;
         }
@@ -114,6 +114,7 @@ public class Main extends Application {
             yDirection *= -1;
         }
 
+        // bounce methods
         public void dirBounce(int direction) {
             // left side
             if (direction == -1){
@@ -128,47 +129,21 @@ public class Main extends Application {
             reverseYDirection();
         }
 
-        public void reset(boolean manualReset) {
-            // decrease lives if it isnt a manual reset or next level
-            if (!manualReset){
-                lives--;
-            }
-
-            // reset location
-            bouncer.setCenterX(SIZE/2);
-            bouncer.setCenterY(BALL_START_Y);
-            // reset directions
-            double newX = Math.random() * 2 - 1;
-            double newY = (manualReset) ? -1 : 1;
-            double newHyp = Math.sqrt(newX*newX + newY*newY);
-            this.xDirection = newX / newHyp;
-            this.yDirection = newY / newHyp;
-            BALL_SPEED = 4;
-        }
-
-        public void updatePos() {
-            bouncer.setCenterX(bouncer.getCenterX() + xDirection * BALL_SPEED * ((currLevel == 3) ? 1.5 : 1));
-            bouncer.setCenterY(bouncer.getCenterY() + yDirection * BALL_SPEED * ((currLevel == 3) ? 1.5 : 1));
-        }
-
-        // edge detection and bounce
         void edgeDetection(){
             // check left edge
             if (bouncer.getCenterX() <= bouncer.getRadius()){
                 reverseXDirection();
-                // prevent ininite edge bounce glitch
+                // prevent infinite bounce glitch
                 bouncer.setCenterX(.001 + RADIUS);
             }
             // check right edge
             if (bouncer.getCenterX() >= SIZE - bouncer.getRadius()){
                 reverseXDirection();
-                // prevent ininite edge bounce glitch
                 bouncer.setCenterX(SIZE - RADIUS - .001);
             }
             // check top edge
             if (bouncer.getCenterY() <= bouncer.getRadius()){
                 reverseYDirection();
-                // prevent ininite edge bounce glitch
                 bouncer.setCenterY(.001 + RADIUS);
             }
             // check bottom edge
@@ -184,33 +159,31 @@ public class Main extends Application {
             }
         }
 
-        // pad collision detection
-        void positionalBounce() { 
-            // grab circle and rectangle properties of the ball and pad
+        void detectPad() { 
             Circle ballObj = bouncer;
             Rectangle padObj = pad.pad;
 
             // only bounce if the ball is moving downwards
             if (yDirection > 0){
-                // check if the ball hits the left side of the pad
-                if (padDetection(ballObj, padObj, 1)){
+                // check left side of pad
+                if (getPadSection(ballObj, padObj, 1)){
                     dirBounce(-1);
                 }
 
-                // check if the ball hits the middle side of the pad
-                if (padDetection(ballObj, padObj, 2)){
+                // check middle of pad
+                if (getPadSection(ballObj, padObj, 2)){
                     dirBounce(0);
                 }
 
-                // check if the ball hits the right side of the pad
-                if (padDetection(ballObj, padObj, 3)){
+                // check right side of pad
+                if (getPadSection(ballObj, padObj, 3)){
                     dirBounce(1);
                 }
             }
         }
 
-        // general method to detect a positional bounce
-        boolean padDetection(Circle ballObj, Rectangle padObj, int position){
+        // general method to detect asection of pad for the positional bounce
+        boolean getPadSection(Circle ballObj, Rectangle padObj, int position){
             double sectionWidth = padObj.getWidth() / 3;
             double start = padObj.getX() + (position - 1) * sectionWidth;
             double end = padObj.getX() + position * sectionWidth;
@@ -219,6 +192,33 @@ public class Main extends Application {
             boolean atCorrectHeight = ballObj.getCenterY() + RADIUS >= PAD_START_Y;
             
             return inHorizontalBounds && atCorrectHeight;
+        }
+
+        public void updatePos() {
+            // ball speed is faster on level 3
+            double multiplier = ((currLevel == 3) ? 1.5 : 1);
+
+            bouncer.setCenterX(bouncer.getCenterX() + xDirection * BALL_SPEED * multiplier);
+            bouncer.setCenterY(bouncer.getCenterY() + yDirection * BALL_SPEED * multiplier);
+        }
+
+        public void reset(boolean manualReset) {
+            // decrease lives if it isnt a manual reset or next level
+            if (!manualReset){
+                lives--;
+            }
+
+            // reset location
+            bouncer.setCenterX(SIZE/2);
+            bouncer.setCenterY(BALL_START_Y);
+            
+            // reset directions
+            double newX = Math.random() * 2 - 1;
+            double newY = (manualReset) ? -1 : 1;
+            double newHyp = Math.sqrt(newX*newX + newY*newY);
+            this.xDirection = newX / newHyp;
+            this.yDirection = newY / newHyp;
+            BALL_SPEED = 4;
         }
     }
 
@@ -756,7 +756,7 @@ public class Main extends Application {
             if (balls.size() != numOfballs){
                 break;
             }
-            ball.positionalBounce();
+            ball.detectPad();
             checkTileCollisions(ball);
         }
 
