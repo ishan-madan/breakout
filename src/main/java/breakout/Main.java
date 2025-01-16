@@ -695,7 +695,7 @@ public class Main extends Application {
     
     // helper methods
     // initialize game objects
-    public static void initializeGameObjects() {
+    static void initializeGameObjects() {
         // Initialize game objects if they don't exist
         balls.clear();
         if (root == null) root = new Group();
@@ -823,7 +823,7 @@ public class Main extends Application {
     }
     
     // all ball movemnet and collision code for step
-    void ballMovement() {
+    static void ballMovement() {
         int numOfballs = balls.size();
 
         for (Bouncer ball : balls){
