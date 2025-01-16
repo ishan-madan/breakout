@@ -882,12 +882,9 @@ public class Main extends Application {
     }
 
     public static void handleKeyInput (KeyCode code) {
+        // cheat keys only work when game is unpaused
         if (!paused) {
             switch (code) {
-                case RIGHT -> rightKey = true;
-                case LEFT -> leftKey = true;
-                case A -> leftKey = true;
-                case D -> rightKey = true;
                 case R -> resetGame();
                 case L -> lives++;
                 case M -> lives--;
@@ -904,6 +901,10 @@ public class Main extends Application {
         }
         
         switch(code) {
+            case RIGHT -> rightKey = true;
+            case LEFT -> leftKey = true;
+            case A -> leftKey = true;
+            case D -> rightKey = true;
             case P -> pauseGame();
         }
     }
