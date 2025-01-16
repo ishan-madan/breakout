@@ -211,9 +211,14 @@ public class Main extends Application {
 
         // general method to detect a positional bounce
         boolean padDetection(Circle ballObj, Rectangle padObj, int position){
-            return (ballObj.getCenterX() > padObj.getX() + (position - 1) * padObj.getWidth() / 3
-                    && ballObj.getCenterX() <= padObj.getX() + position*padObj.getWidth() / 3 
-                    && ballObj.getCenterY() + RADIUS >= PAD_START_Y);
+            double sectionWidth = padObj.getWidth() / 3;
+            double start = padObj.getX() + (position - 1) * sectionWidth;
+            double end = padObj.getX() + position * sectionWidth;
+            
+            boolean inHorizontalBounds = ballObj.getCenterX() > start && ballObj.getCenterX() <= end;
+            boolean atCorrectHeight = ballObj.getCenterY() + RADIUS >= PAD_START_Y;
+            
+            return inHorizontalBounds && atCorrectHeight;
         }
     }
 
