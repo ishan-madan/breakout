@@ -10,6 +10,7 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
@@ -371,36 +372,52 @@ public class Main extends Application {
         }
     }
 
+    static class UIElements {
+        public static Text createText(String content, double fontSize, Color color){
+            Text text = new Text(content);
+            text.setFont(Font.font(fontSize));
+            text.setFill(color);
+            
+            return text;
+        }
+
+        public static Button createButton(String content, Runnable action){
+            Button button = new Button(content);
+            button.setOnAction(e -> action.run());
+
+            return button;
+        }
+
+        public static VBox createBaseLayout() {
+            VBox layout = new VBox(20);
+            layout.setAlignment(Pos.CENTER);
+            return layout;
+        }
+
+        public static Scene createGameScene(Parent root) {
+            return new Scene(root, SIZE, SIZE, DUKE_BLUE);
+        }
+    }
     // splash screen creation methods
     public static Scene createStartScreen() {
-        VBox startLayout = new VBox(20); // 20 is spacing between elements
-        startLayout.setAlignment(Pos.CENTER);
+        VBox startLayout = UIElements.createBaseLayout();
         
-        Text title = new Text("BREAKOUT");
-        title.setFont(Font.font(48));
-        title.setFill(DUKE_BLUE);
+        Text title = UIElements.createText("BREAKOUT", 48, DUKE_BLUE);
+        Text instructions = UIElements.createText("Use LEFT/RIGHT or A/D to move the paddle", 15, DUKE_BLUE);
+        Text hs = UIElements.createText("Highscore: " + highscore, 15, DUKE_BLUE);
         
-        Text instructions = new Text("Use LEFT/RIGHT or A/D to move the paddle");
-        instructions.setFont(Font.font(15));
-        instructions.setFill(DUKE_BLUE);
-
-        Text hs = new Text("Highscore: " + highscore);
-        hs.setFont(Font.font(15));
-        hs.setFill(DUKE_BLUE);
-        
-        Button startButton = new Button("Start Game");
-        startButton.setOnAction(e -> {
+        Runnable startGameAction = () -> {
             loadNewScene(1);
             animation.play();
-        });
+        };
+        Button startButton = UIElements.createButton("Start Game", startGameAction);
         
         startLayout.getChildren().addAll(title, instructions, hs, startButton);
         
-        Scene startScene = new Scene(startLayout, SIZE, SIZE, DUKE_BLUE);
+        Scene startScene = UIElements.createGameScene(startLayout);
         startScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.SPACE) {
-                loadNewScene(1);
-                animation.play();
+                startGameAction.run();
             }
         });
         
@@ -408,64 +425,52 @@ public class Main extends Application {
     }
 
     public static Scene createEndScreen(boolean won) {
-        VBox endLayout = new VBox(20);
-        endLayout.setAlignment(Pos.CENTER);
+        VBox endLayout = UIElements.createBaseLayout();
         
-        Text endText = new Text(won ? "YOU WIN!" : "GAME OVER");
-        endText.setFont(Font.font(48));
-        endText.setFill(DUKE_BLUE);
-
-        Text scoreText = new Text((highscore < score) ? "New Highscore: " + score : "Score: " + score);
-        Text hs = new Text((highscore < score) ? "CONGRATS!" : "Highscore: " + highscore);
+        Text endText = UIElements.createText((won ? "YOU WIN!" : "GAME OVER"), 48, DUKE_BLUE);
+        Text scoreText = UIElements.createText((highscore < score) ? "New Highscore: " + score : "Score: " + score, 15, DUKE_BLUE);
+        Text hs = UIElements.createText((highscore < score) ? "CONGRATS!" : "Highscore: " + highscore, 15, DUKE_BLUE);
         
-        Button restartButton = new Button("Play Again");
-        restartButton.setOnAction(e -> {
+        Runnable restartGameAction = () -> {
             currLevel = 1;
             lives = 3;
             highscore = Math.max(highscore, score);
             score = 0;
             loadNewScene(1);
             animation.play();
-        });
+        };
+
+        Button restartButton = UIElements.createButton("Restart", restartGameAction);
         
-        Button quitButton = new Button("Quit");
-        quitButton.setOnAction(e -> stage.close());
+        Button quitButton = UIElements.createButton("Quit", () -> stage.close());
         
         endLayout.getChildren().addAll(endText, restartButton, scoreText, hs, quitButton);
         
-        return new Scene(endLayout, SIZE, SIZE, DUKE_BLUE);
+        return UIElements.createGameScene(endLayout);
     }
 
     public static Scene midLevelSplash(int lvl) {
         animation.pause();
-        VBox midLayout = new VBox(20); // 20 is spacing between elements
-        midLayout.setAlignment(Pos.CENTER);
+        VBox midLayout = UIElements.createBaseLayout();
         
-        Text hs = new Text("Level " + (lvl-1) + " Complete!");
-        hs.setFont(Font.font(25));
-        hs.setFill(DUKE_BLUE);
-
-        Text scoreTxt = new Text("Score: " + score);
-        scoreTxt.setFont(Font.font(25));
-        scoreTxt.setFill(DUKE_BLUE);
+        Text hs = UIElements.createText("Level " + (lvl-1) + " Complete!", 25, DUKE_BLUE);
+        Text scoreTxt = UIElements.createText("Score: " + score, 25, DUKE_BLUE);
+        Text livesTxt = UIElements.createText("You have " + lives + " lives remaining!", 15, DUKE_BLUE);
         
-        Text livesTxt = new Text("You have " + lives + " lives remaining!");
-        livesTxt.setFont(Font.font(15));
-        livesTxt.setFill(DUKE_BLUE);
-        
-        Button startButton = new Button("Next Level");
-        startButton.setOnAction(e -> {
+        Runnable nextLevelAction = () -> {
             loadNewScene(lvl);
             animation.play();
-        });
+        };
+
+        Button startButton = UIElements.createButton("Next Level", nextLevelAction);
         
         midLayout.getChildren().addAll(hs, scoreTxt, livesTxt, startButton);
         
-        Scene midScene = new Scene(midLayout, SIZE, SIZE, DUKE_BLUE);
+        Scene midScene = UIElements.createGameScene(midLayout);
+
         midScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.SPACE) {
-                loadNewScene(lvl);
-                animation.play();
+                nextLevelAction.run();
             }
         });
         
