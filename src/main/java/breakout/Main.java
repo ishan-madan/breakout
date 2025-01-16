@@ -147,8 +147,8 @@ public class Main extends Application {
         }
 
         public void updatePos() {
-            bouncer.setCenterX(bouncer.getCenterX() + xDirection * BALL_SPEED);
-            bouncer.setCenterY(bouncer.getCenterY() + yDirection * BALL_SPEED);
+            bouncer.setCenterX(bouncer.getCenterX() + xDirection * BALL_SPEED * ((currLevel == 3) ? 1.5 : 1));
+            bouncer.setCenterY(bouncer.getCenterY() + yDirection * BALL_SPEED * ((currLevel == 3) ? 1.5 : 1));
         }
 
         // edge detection and bounce
@@ -234,7 +234,7 @@ public class Main extends Application {
         }
 
         public void reset(){
-            pad.setWidth(100);
+            pad.setWidth((currLevel != 1) ? 50 : 100);
             pad.setX(SIZE/2 - pad.getWidth()/2);
             pad.setY(PAD_START_Y);
         }
@@ -602,7 +602,7 @@ public class Main extends Application {
         balls.get(0).reset(true); 
         pad.reset();
     }
-    
+
     // set new scene
     public static void loadNewScene(int lvlNum) {
         // reset keydown bools
@@ -621,6 +621,13 @@ public class Main extends Application {
         // Reset pad and ball
         pad.reset();
         balls.get(0).reset(true);
+
+        // make pad smaller
+        if (lvlNum == 2){
+            pad.pad.setWidth(50);
+        } else {
+            pad.pad.setWidth(100);
+        }
 
         // add UI elements
         livesText = new Text(10, 20, "Lives: " + lives);
@@ -676,14 +683,14 @@ public class Main extends Application {
     // make paddle wider powerup
     public static void padExt(){
         if (pad.pad.getWidth() != 150){
-            pad.pad.setWidth(150);
+            pad.pad.setWidth((currLevel != 1) ? 75 : 150);
             pad.pad.setX(pad.pad.getX() - 25);
         }
         paddleExtensionTime = 300;
     }
 
     public static void padWidthReset() {
-        pad.pad.setWidth(100);
+        pad.pad.setWidth((currLevel != 1) ? 50 : 100);
     }
 
     public static void speedUpBall(){
