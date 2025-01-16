@@ -67,7 +67,6 @@ public class Main extends Application {
     static boolean leftKey = false;
 
 
-
     // classes
     static class Bouncer {
         Circle bouncer;
