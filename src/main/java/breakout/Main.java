@@ -502,7 +502,6 @@ public class Main extends Application {
             
             Runnable startGameAction = () -> {
                 loadNewScene(1);
-                animation.play();
             };
             Button startButton = UIElements.createButton("Start Game", startGameAction);
             
@@ -531,7 +530,6 @@ public class Main extends Application {
                 highscore = Math.max(highscore, score);
                 score = 0;
                 loadNewScene(1);
-                animation.play();
             };
     
             Button restartButton = UIElements.createButton("Restart", restartGameAction);
@@ -553,7 +551,6 @@ public class Main extends Application {
             
             Runnable nextLevelAction = () -> {
                 loadNewScene(lvl);
-                animation.play();
             };
     
             Button startButton = UIElements.createButton("Next Level", nextLevelAction);
@@ -757,6 +754,8 @@ public class Main extends Application {
         
         stage.setScene(myScene);
         stage.show();
+
+        animation.play();
     }
     
     @Override
