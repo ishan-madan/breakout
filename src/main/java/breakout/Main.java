@@ -177,6 +177,7 @@ public class Main extends Application {
                     pad.reset();
                     score -= 10;
                 } else {
+                    balls.remove(this);
                     root.getChildren().remove(bouncer);
                 }
             }
@@ -786,5 +787,3 @@ public class Main extends Application {
     public static void main (String[] args) {
         launch(args);
     }
-
-}
