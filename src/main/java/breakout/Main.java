@@ -211,7 +211,7 @@ public class Main extends Application {
             // reset location
             bouncer.setCenterX(SIZE/2);
             bouncer.setCenterY(BALL_START_Y);
-            
+
             // reset directions
             double newX = Math.random() * 2 - 1;
             double newY = (manualReset) ? -1 : 1;
@@ -302,52 +302,72 @@ public class Main extends Application {
         }
 
         public void damage(Bouncer ball) {
-            if (--health == 0){
-                // set powerup
-                switch (powerType) {
-                    case 'a': {addBall(ball); break;}
-                    case 'p': {padExt(); break;}
-                    case 's': {speedUpBall(); break;}
-                    case 'e': {explode(tile.getX(), tile.getY(), ball); break;}
-                }
+            health--;
+            updateApperance();
+            updateScore();
 
-                // kill tile
-                tiles.remove(this);
-                root.getChildren().remove(this.tile);
+            if (health == 0){
+                activatePowerup(ball, powerType);
+                killTile();
+            }
+        }
 
-                // modify score
-                score += (powerType != '1') ? 10 : 5;
-            } 
-            else if (health == 1){
+        void updateApperance() {
+            if (health == 1){
                 tile.setFill(Color.BLACK);
-            } else if (!Character.isAlphabetic(powerType)){
+            }
+        }
+
+        void updateScore() {
+            if (health == 0) {
+                score += (powerType != '1') ? 10 : 5;
+            } else if (!Character.isAlphabetic(powerType)) {
                 score += 5;
             }
         }
 
+        void activatePowerup(Bouncer ball, char powerType){
+            switch (powerType) {
+                case 'a': {addBall(ball); break;}
+                case 'p': {padExt(); break;}
+                case 's': {speedUpBall(); break;}
+                case 'e': {explode(tile.getX(), tile.getY(), ball); break;}
+            }
+        }
+
+        void killTile(){
+            tiles.remove(this);
+            root.getChildren().remove(this.tile);
+        }
+
         void explode(double x, double y, Bouncer ball){
             // MAKE THIS WORK
-            int idx = 0;
+            int tileIndex = 0;
 
-            while (idx < tiles.size()){
-                Tile tileToCheck = tiles.get(idx);
-                double xDiff = Math.abs(tileToCheck.getTile().getX() - this.getTile().getX());
-                double yDiff = Math.abs(tileToCheck.getTile().getY() - this.getTile().getY());
+            while (tileIndex < tiles.size()){
+                Tile tileToCheck = tiles.get(tileIndex);
+                boolean increment = true;
 
                 // damage the tile if it is in the exploding zone and it isnt the exploding tile itself
-                if (xDiff <= 40.0 && yDiff <= 20.0 && tileToCheck != this){
+                if (isInExplosionRange(tileToCheck)){
                     tileToCheck.damage(ball);
 
                     // incrememnt forward if the tile didnt die
-                    if (tileToCheck.getHealth() != 0){
-                        idx++;
-                    }
+                    increment = (tileToCheck.getHealth() != 0);
                 } 
-                // increment if not in exploding zone
-                else {
-                    idx++;
+                
+                // increment if not in exploding zone or if it didnt die
+                if (increment){
+                    tileIndex++;
                 }
+                
             }
+        }
+
+        private boolean isInExplosionRange(Tile tileToCheck) {
+            double xDiff = Math.abs(tileToCheck.getTile().getX() - this.getTile().getX());
+            double yDiff = Math.abs(tileToCheck.getTile().getY() - this.getTile().getY());
+            return xDiff <= 40.0 && yDiff <= 20.0 && tileToCheck != this;
         }
     }
 
